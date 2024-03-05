@@ -1,0 +1,1 @@
+ALTER TABLE product_sale DROP COLUMN name;

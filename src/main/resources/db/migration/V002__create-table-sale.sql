@@ -1,0 +1,8 @@
+CREATE TABLE sale (
+	id BIGINT NOT NULL AUTO_INCREMENT,
+	description VARCHAR(60) NOT NULL,
+	date_register DATETIME NOT NULL,
+    status VARCHAR(30) NOT NULL,
+
+	PRIMARY KEY(id)
+);
