@@ -19,7 +19,13 @@ public class RegisterSaleService {
     public Sale save(Sale sale) {
         sale.setDateRegister(OffsetDateTime.now());
 
-        return saleRepository.save(sale);
+        sale.getItems().forEach(item -> {
+            if (!saleRepository.findById(item.getProduct().getId()).isPresent()) {
+
+            }
+        });
+        Sale newSale = saleRepository.save(sale);
+        return newSale;
     }
 
 }
