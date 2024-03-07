@@ -15,6 +15,7 @@ import java.util.List;
 @Setter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity
+@ToString
 public class Sale {
 
     @Id
@@ -31,11 +32,12 @@ public class Sale {
     @Column(name = "date_register")
     private OffsetDateTime dateRegister;
 
-//    @Valid
-    @OneToMany(mappedBy = "sale", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Valid
+    @OneToMany(mappedBy = "sale", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<ProductSale> items;
 
     @PrePersist
+    @PreUpdate
     public void prePersist() {
         this.items.forEach(item -> {
             item.setSale(this);

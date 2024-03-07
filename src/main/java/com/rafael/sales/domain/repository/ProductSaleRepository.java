@@ -1,6 +1,7 @@
 package com.rafael.sales.domain.repository;
 
 import com.rafael.sales.domain.model.ProductSale;
+import com.rafael.sales.domain.model.Sale;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,7 +13,6 @@ import java.util.List;
 @Repository
 public interface ProductSaleRepository extends JpaRepository<ProductSale, Long> {
 
-//    @Query("SELECT * FROM product_sale WHERE id_sale = :idSale;")
-//    List<ProductSale> findByIdSale(Long idSale);
+    List<ProductSale> findBySale(Sale sale);
 
 }
