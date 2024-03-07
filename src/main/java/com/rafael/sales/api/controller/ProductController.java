@@ -5,9 +5,12 @@ import com.rafael.sales.domain.repository.ProductRepository;
 import com.rafael.sales.domain.service.RegisterProductService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import lombok.ToString;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @AllArgsConstructor
 @RestController
@@ -18,7 +21,7 @@ public class ProductController {
     private final ProductRepository productRepository;
 
     @GetMapping
-    public java.util.List<Product> list() {
+    public List<Product> list() {
         return productRepository.findAll();
     }
 

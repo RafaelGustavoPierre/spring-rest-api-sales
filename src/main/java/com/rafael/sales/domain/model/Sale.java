@@ -15,7 +15,6 @@ import java.util.List;
 @Setter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity
-@ToString
 public class Sale {
 
     @Id
@@ -32,7 +31,7 @@ public class Sale {
     @Column(name = "date_register")
     private OffsetDateTime dateRegister;
 
-    @Valid
+//    @Valid
     @OneToMany(mappedBy = "sale", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductSale> items;
 
