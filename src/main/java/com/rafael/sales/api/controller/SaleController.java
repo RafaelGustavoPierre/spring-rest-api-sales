@@ -1,7 +1,5 @@
 package com.rafael.sales.api.controller;
 
-import com.rafael.sales.domain.exception.SaleException;
-import com.rafael.sales.domain.model.Product;
 import com.rafael.sales.domain.model.Sale;
 import com.rafael.sales.domain.repository.SaleRepository;
 import com.rafael.sales.domain.service.RegisterSaleService;
@@ -11,9 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @AllArgsConstructor
 @RestController
@@ -50,6 +46,12 @@ public class SaleController {
         registerSaleService.edit(sale);
 
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/cancel")
+    @ResponseStatus(HttpStatus.OK)
+    public Sale cancel(@RequestBody Sale sale) {
+        return registerSaleService.cancel(sale);
     }
 
 }

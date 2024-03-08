@@ -3,7 +3,6 @@ package com.rafael.sales.domain.service;
 import com.rafael.sales.domain.exception.ProductException;
 import com.rafael.sales.domain.exception.SaleException;
 import com.rafael.sales.domain.model.Product;
-import com.rafael.sales.domain.model.ProductSale;
 import com.rafael.sales.domain.model.Sale;
 import com.rafael.sales.domain.model.StatusSale;
 import com.rafael.sales.domain.repository.ProductRepository;
@@ -14,9 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigInteger;
 import java.time.OffsetDateTime;
-import java.util.List;
 import java.util.Optional;
 
 @AllArgsConstructor
@@ -30,6 +27,7 @@ public class RegisterSaleService {
     @Transactional
     public Sale save(Sale sale) {
         sale.setDateRegister(OffsetDateTime.now());
+        sale.setStatus(StatusSale.EMITIDA);
 
         sale.getItems().forEach(itemSale -> {
             Optional<Product> product = productRepository.findById(itemSale.getProduct().getId());
@@ -56,7 +54,6 @@ public class RegisterSaleService {
                         throw new ProductException("Quantidade de estoque insuficiente");
                     }
 
-
                     if (item.getQuantity().compareTo(ps.get().getQuantity()) != 0) {
                         System.out.println(ps.get().getQuantity().subtract(item.getQuantity()));
                         if (item.getQuantity().compareTo(ps.get().getQuantity()) < 0) {
@@ -75,4 +72,19 @@ public class RegisterSaleService {
         });
         saleRepository.save(saleEdit.get());
     }
+
+    public Sale cancel(Sale sale) {
+        if (!saleRepository.existsById(sale.getId())) {
+            throw new SaleException("Está venda não existe!");
+        }
+
+        Optional<Sale> saleCancel = saleRepository.findById(sale.getId());
+        if (saleCancel.get().getStatus().equals(StatusSale.CANCELED)){
+            throw new SaleException("Venda já cancelada!");
+        }
+
+        saleCancel.get().setStatus(StatusSale.CANCELED);
+        return saleRepository.save(saleCancel.get());
+    }
+
 }

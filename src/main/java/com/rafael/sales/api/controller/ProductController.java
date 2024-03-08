@@ -38,13 +38,15 @@ public class ProductController {
         return registerProductService.save(product);
     }
 
-    @PutMapping("/{productId}")
-    public ResponseEntity<Product> update(@Valid @PathVariable Long productId, @RequestBody Product product) {
-        if (!productRepository.existsById(productId)) {
+    @PutMapping
+    public ResponseEntity<Product> update(@Valid @RequestBody Product product) {
+        if (!productRepository.existsById(product.getId())) {
             return ResponseEntity.notFound().build();
         }
 
-        product.setId(productId);
+        var productRegistred = productRepository.findById(product.getId());
+        product.setQuantity(productRegistred.get().getQuantity().add(product.getQuantity()));
+
         Product productUpdated = registerProductService.save(product);
         return ResponseEntity.ok(productUpdated);
     }
