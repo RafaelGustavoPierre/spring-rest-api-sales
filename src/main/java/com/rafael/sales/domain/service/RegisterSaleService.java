@@ -74,14 +74,22 @@ public class RegisterSaleService {
     }
 
     public Sale cancel(Sale sale) {
-        if (!saleRepository.existsById(sale.getId())) {
+        Optional<Sale> saleCancel = saleRepository.findById(sale.getId());
+        if (saleCancel.isEmpty()) {
             throw new SaleException("Está venda não existe!");
         }
 
-        Optional<Sale> saleCancel = saleRepository.findById(sale.getId());
         if (saleCancel.get().getStatus().equals(StatusSale.CANCELED)){
             throw new SaleException("Venda já cancelada!");
         }
+
+        saleCancel.get().getItems().forEach(item -> {
+            var ps = saleCancel.get().getItems().stream().filter(i -> i.getProduct().getId().equals(item.getProduct().getId())).findAny();
+            Optional<Product> product = productRepository.findById(ps.get().getProduct().getId());
+            product.get().setQuantity(product.get().getQuantity().add(ps.get().getQuantity()));
+
+            productRepository.save(product.get());
+        });
 
         saleCancel.get().setStatus(StatusSale.CANCELED);
         return saleRepository.save(saleCancel.get());
