@@ -32,7 +32,8 @@ public class RegisterSaleService {
         sale.getItems().forEach(itemSale -> {
             Optional<Product> product = productRepository.findById(itemSale.getProduct().getId());
             if (product.get().getQuantity().compareTo(itemSale.getQuantity()) < 1)
-                throw new SaleException("Não há estóque suficiente para a venda do produto " + product.get().getName() + ", quantidade em estoque: " + product.get().getQuantity());
+                throw new SaleException("Não há estóque suficiente para a venda do produto " + product.get().getName()
+                                        + ", quantidade em estoque: " + product.get().getQuantity());
 
             product.get().setQuantity(product.get().getQuantity().subtract(itemSale.getQuantity()));
             productRepository.save(product.get());
@@ -43,6 +44,10 @@ public class RegisterSaleService {
     @Transactional
     public void edit(Sale sale) {
         Optional<Sale> saleEdit = saleRepository.findById(sale.getId());
+        if (saleEdit.get().getStatus() == StatusSale.CANCELED) {
+            throw new SaleException("Não é possivel editar uma venda cancelada!");
+        }
+
         saleEdit.ifPresent(value -> value.setStatus(sale.getStatus()));
 
         saleEdit.get().getItems().forEach(item -> {
@@ -55,7 +60,6 @@ public class RegisterSaleService {
                     }
 
                     if (item.getQuantity().compareTo(ps.get().getQuantity()) != 0) {
-                        System.out.println(ps.get().getQuantity().subtract(item.getQuantity()));
                         if (item.getQuantity().compareTo(ps.get().getQuantity()) < 0) {
                             var quantity = ps.get().getQuantity().subtract(item.getQuantity());
                             product.get().setQuantity(product.get().getQuantity().subtract(quantity));
