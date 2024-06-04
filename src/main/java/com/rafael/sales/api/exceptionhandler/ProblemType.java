@@ -1,12 +1,16 @@
 package com.rafael.sales.api.exceptionhandler;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.Builder;
 import lombok.Getter;
 
 @Getter
 public enum ProblemType {
 
+    ERROR_SYNTAX("/error-de-sintaxe", "Campos preenchidos incorretamente"),
     INVALID_DATA("/dados-invalidos", "Dados inválidos"),
-    ITEM_NOT_FOUND("/item-nao-encontrado", "Item não encontrado");
+    ITEM_NOT_FOUND("/item-nao-encontrado", "Item não encontrado"),
+    ENTITY_IN_USE("/entidade-em-uso", "Entidade está em uso");
 
     private String title;
     private String uri;
