@@ -6,5 +6,8 @@ public class ProductNotFoundException extends RuntimeException {
         super(message);
     }
 
+    public ProductNotFoundException(Long id) {
+        this(String.format("Não existe o produto com código %s", id));
+    }
 
 }

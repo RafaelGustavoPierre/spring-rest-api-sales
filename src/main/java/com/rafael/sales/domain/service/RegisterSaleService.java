@@ -30,22 +30,22 @@ public class RegisterSaleService {
         sale.setDateRegister(OffsetDateTime.now());
         sale.setStatus(StatusSale.EMITIDA);
 
-        try {
-            sale.getItems().forEach(itemSale -> {
-                Optional<Product> product = productRepository.findById(itemSale.getProduct().getId());
-                if (product.get().getQuantity().compareTo(itemSale.getQuantity()) < 1)
-                    throw new SaleException("Não há estóque suficiente para a venda do produto " + product.get().getName()
-                            + ", quantidade em estoque: " + product.get().getQuantity());
-
-                product.get().setQuantity(product.get().getQuantity().subtract(itemSale.getQuantity()));
-                productRepository.save(product.get());
-            });
-
-            return saleRepository.save(sale);
-        } catch (NullPointerException e) {
+        if (sale.getItems().isEmpty()) {
             throw new ProductNotFoundException("Nenhum produto foi vinculado a venda");
         }
 
+        sale.getItems().forEach(itemSale -> {
+            Optional<Product> product = productRepository.findById(itemSale.getProduct().getId());
+            if (product.get().getQuantity().compareTo(itemSale.getQuantity()) < 1) {
+                throw new SaleException("Não há estóque suficiente para a venda do produto " + product.get().getName()
+                        + ", quantidade em estoque: " + product.get().getQuantity());
+            }
+
+            product.get().setQuantity(product.get().getQuantity().subtract(itemSale.getQuantity()));
+            productRepository.save(product.get());
+        });
+
+        return saleRepository.save(sale);
     }
 
     @Transactional

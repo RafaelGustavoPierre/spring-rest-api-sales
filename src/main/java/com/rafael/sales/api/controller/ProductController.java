@@ -5,7 +5,6 @@ import com.rafael.sales.domain.repository.ProductRepository;
 import com.rafael.sales.domain.service.RegisterProductService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
-import lombok.ToString;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -26,10 +25,8 @@ public class ProductController {
     }
 
     @GetMapping("/{productId}")
-    public ResponseEntity<Product> find(@PathVariable Long productId) {
-        return productRepository.findById(productId)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public Product find(@PathVariable Long productId) {
+        return registerProductService.findProductById(productId);
     }
 
     @PostMapping
@@ -40,12 +37,8 @@ public class ProductController {
 
     @PutMapping
     public ResponseEntity<Product> update(@Valid @RequestBody Product product) {
-        if (!productRepository.existsById(product.getId())) {
-            return ResponseEntity.notFound().build();
-        }
-
-        var productRegistred = productRepository.findById(product.getId());
-        product.setQuantity(productRegistred.get().getQuantity().add(product.getQuantity()));
+        var productRegistred = registerProductService.findProductById(product.getId());
+        product.setQuantity(productRegistred.getQuantity().add(product.getQuantity()));
 
         Product productUpdated = registerProductService.save(product);
         return ResponseEntity.ok(productUpdated);
@@ -53,10 +46,6 @@ public class ProductController {
 
     @DeleteMapping("/{productId}")
     public ResponseEntity<Product> exclude(@PathVariable Long productId) {
-        if (!productRepository.existsById(productId)) {
-            return ResponseEntity.notFound().build();
-        }
-
         registerProductService.exclude(productId);
         return ResponseEntity.noContent().build();
     }

@@ -1,5 +1,6 @@
 package com.rafael.sales.domain.service;
 
+import com.rafael.sales.domain.exception.ProductNotFoundException;
 import com.rafael.sales.domain.model.Product;
 import com.rafael.sales.domain.repository.ProductRepository;
 import lombok.AllArgsConstructor;
@@ -17,7 +18,13 @@ public class RegisterProductService {
         return productRepository.save(product);
     }
 
+    @Transactional
+    public Product findProductById(Long id) {
+        return productRepository.findById(id).orElseThrow(() -> new ProductNotFoundException(id));
+    }
+
     public void exclude(Long productId) {
+        this.findProductById(productId);
         productRepository.deleteById(productId);
     }
 
