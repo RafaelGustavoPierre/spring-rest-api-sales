@@ -1,6 +1,7 @@
 package com.rafael.sales.domain.service;
 
 import com.rafael.sales.domain.exception.ProductException;
+import com.rafael.sales.domain.exception.ProductNotFoundException;
 import com.rafael.sales.domain.exception.SaleException;
 import com.rafael.sales.domain.model.Product;
 import com.rafael.sales.domain.model.Sale;
@@ -29,16 +30,22 @@ public class RegisterSaleService {
         sale.setDateRegister(OffsetDateTime.now());
         sale.setStatus(StatusSale.EMITIDA);
 
-        sale.getItems().forEach(itemSale -> {
-            Optional<Product> product = productRepository.findById(itemSale.getProduct().getId());
-            if (product.get().getQuantity().compareTo(itemSale.getQuantity()) < 1)
-                throw new SaleException("Não há estóque suficiente para a venda do produto " + product.get().getName()
-                                        + ", quantidade em estoque: " + product.get().getQuantity());
+        try {
+            sale.getItems().forEach(itemSale -> {
+                Optional<Product> product = productRepository.findById(itemSale.getProduct().getId());
+                if (product.get().getQuantity().compareTo(itemSale.getQuantity()) < 1)
+                    throw new SaleException("Não há estóque suficiente para a venda do produto " + product.get().getName()
+                            + ", quantidade em estoque: " + product.get().getQuantity());
 
-            product.get().setQuantity(product.get().getQuantity().subtract(itemSale.getQuantity()));
-            productRepository.save(product.get());
-        });
-        return saleRepository.save(sale);
+                product.get().setQuantity(product.get().getQuantity().subtract(itemSale.getQuantity()));
+                productRepository.save(product.get());
+            });
+
+            return saleRepository.save(sale);
+        } catch (NullPointerException e) {
+            throw new ProductNotFoundException("Nenhum produto foi vinculado a venda");
+        }
+
     }
 
     @Transactional
