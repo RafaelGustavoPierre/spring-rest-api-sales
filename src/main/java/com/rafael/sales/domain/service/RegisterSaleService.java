@@ -81,7 +81,9 @@ public class RegisterSaleService {
                 }
             }
         });
-        saleRepository.save(saleEdit.get());
+
+        Sale prod = saleRepository.save(saleEdit.get());
+        System.out.println(prod.toString());
     }
 
     public Sale cancel(Sale sale) {

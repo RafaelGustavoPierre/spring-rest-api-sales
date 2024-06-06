@@ -7,6 +7,8 @@ import lombok.Getter;
 @Getter
 public enum ProblemType {
 
+    RESOURCE_NOT_FOUND("/recurso-nao-encontrado", "Recurso não encontrado"),
+    MEDIA_TYPE_NOT_SUPPORTED("/midia-nao-suportada", "Formato Inválido"),
     ERROR_SYNTAX("/error-de-sintaxe", "Campos preenchidos incorretamente"),
     INVALID_DATA("/dados-invalidos", "Dados inválidos"),
     ITEM_NOT_FOUND("/item-nao-encontrado", "Item não encontrado"),

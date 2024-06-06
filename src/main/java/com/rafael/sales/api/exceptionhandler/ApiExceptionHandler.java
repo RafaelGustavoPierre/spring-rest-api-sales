@@ -1,7 +1,10 @@
 package com.rafael.sales.api.exceptionhandler;
 
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.rafael.sales.domain.exception.EntityInUseException;
 import com.rafael.sales.domain.exception.ProductNotFoundException;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.hibernate.validator.internal.properties.Field;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
@@ -13,14 +16,18 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @ControllerAdvice
 public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
@@ -102,12 +109,50 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
 
     @Override
     protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+        Throwable rootCause = ExceptionUtils.getRootCause(ex);
+
+        if (rootCause instanceof InvalidFormatException) {
+            return handleInvalidFormatException((InvalidFormatException) rootCause, headers, status, request);
+        }
+
         ProblemType problemType = ProblemType.ERROR_SYNTAX;
         String detail = "O corpo da requisição está inválido. Verifique erro de sintaxe.";
+        Problem problem = createProblemBuilder(status, problemType, detail).build();
+
+        return handleExceptionInternal(ex, problem, new HttpHeaders(), status, request);
+    }
+
+    @Override
+    protected ResponseEntity<Object> handleHttpMediaTypeNotSupported(HttpMediaTypeNotSupportedException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+        ProblemType problemType = ProblemType.MEDIA_TYPE_NOT_SUPPORTED;
+        String detail = "O formato do objeto não é suportado pela API";
 
         Problem problem = createProblemBuilder(status, problemType, detail).build();
 
         return handleExceptionInternal(ex, problem, new HttpHeaders(), status, request);
+    }
+
+    @Override
+    protected ResponseEntity<Object> handleNoResourceFoundException(NoResourceFoundException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+        ProblemType problemType = ProblemType.RESOURCE_NOT_FOUND;
+        String detail = String.format("O recurso /%s que você tentou acessar, é inexistente.", ex.getResourcePath());
+
+        Problem problem = createProblemBuilder(status, problemType, detail).build();
+
+        return handleExceptionInternal(ex, problem, headers, status, request);
+    }
+
+    private ResponseEntity<Object> handleInvalidFormatException(InvalidFormatException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+        ex.getPath().forEach(ref -> System.out.println(ref.getFieldName()));
+
+        String path = joinPath(ex.getPath());
+
+        ProblemType problemType = ProblemType.ERROR_SYNTAX;
+        String detail = String.format("A propriedade '%s' recebeu o valor '%s' que é de um tipo Inválido. " +
+                "Corrija e informe um valor compátivel com o tipo %s.", path, ex.getValue(), ex.getTargetType().getSimpleName());
+        Problem problem = createProblemBuilder(status, problemType, detail).build();
+
+        return handleExceptionInternal(ex, problem, headers, status, request);
     }
 
     private Problem.ProblemBuilder createProblemBuilder(HttpStatusCode status, ProblemType problemType, String detail) {
@@ -117,5 +162,12 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
                 .title(problemType.getTitle())
                 .type(problemType.getUri())
                 .detail(detail);
+    }
+
+    private String joinPath(List<JsonMappingException.Reference> references) {
+        return references.stream()
+                .map(ref -> ref.getFieldName())
+                .filter(fieldName -> fieldName != null && !fieldName.equals("null"))
+                .collect(Collectors.joining("."));
     }
 }

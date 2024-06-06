@@ -38,7 +38,7 @@ public class SaleController {
     }
 
     @PutMapping
-    public ResponseEntity<Sale> edit(@RequestBody Sale sale) {
+    public ResponseEntity<Sale> edit(@RequestBody @Valid Sale sale) {
         if (!saleRepository.existsById(sale.getId())) {
             return ResponseEntity.notFound().build();
         }
