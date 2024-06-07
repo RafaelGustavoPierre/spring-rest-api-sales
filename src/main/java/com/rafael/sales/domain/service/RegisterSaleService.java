@@ -15,11 +15,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @AllArgsConstructor
 @Service
 public class RegisterSaleService {
+
+    private static final String PRODUCT_NOT_FOUND = "Preencha os campos corretamente";
 
     private final SaleRepository saleRepository;
     private final ProductRepository productRepository;
@@ -34,17 +38,22 @@ public class RegisterSaleService {
             throw new ProductNotFoundException("Nenhum produto foi vinculado a venda");
         }
 
+        List<Product> productList = new ArrayList<>();
         sale.getItems().forEach(itemSale -> {
+            if (itemSale.getProduct().getId() == null)
+                throw new ProductNotFoundException(PRODUCT_NOT_FOUND);
+
             Optional<Product> product = productRepository.findById(itemSale.getProduct().getId());
+
             if (product.get().getQuantity().compareTo(itemSale.getQuantity()) < 1) {
                 throw new SaleException("Não há estóque suficiente para a venda do produto " + product.get().getName()
                         + ", quantidade em estoque: " + product.get().getQuantity());
             }
 
             product.get().setQuantity(product.get().getQuantity().subtract(itemSale.getQuantity()));
-            productRepository.save(product.get());
+            productList.add(product.get());
         });
-
+        productRepository.saveAll(productList);
         return saleRepository.save(sale);
     }
 
