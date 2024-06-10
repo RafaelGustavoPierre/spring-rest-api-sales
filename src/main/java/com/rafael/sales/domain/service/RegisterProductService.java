@@ -1,16 +1,13 @@
 package com.rafael.sales.domain.service;
 
 import com.rafael.sales.domain.exception.EntityInUseException;
-import com.rafael.sales.domain.exception.ProductNotFoundException;
+import com.rafael.sales.domain.exception.EntityNotFoundException;
 import com.rafael.sales.domain.model.Product;
 import com.rafael.sales.domain.repository.ProductRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
 
 @AllArgsConstructor
 @Service
@@ -27,7 +24,7 @@ public class RegisterProductService {
 
     @Transactional
     public Product findProductById(Long id) {
-        return productRepository.findById(id).orElseThrow(() -> new ProductNotFoundException(id));
+        return productRepository.findById(id).orElseThrow(() -> new EntityNotFoundException(id));
     }
 
     public void exclude(Long productId) {

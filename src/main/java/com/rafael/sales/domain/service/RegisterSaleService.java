@@ -1,8 +1,6 @@
 package com.rafael.sales.domain.service;
 
-import com.rafael.sales.domain.exception.ProductException;
-import com.rafael.sales.domain.exception.ProductNotFoundException;
-import com.rafael.sales.domain.exception.SaleException;
+import com.rafael.sales.domain.exception.*;
 import com.rafael.sales.domain.model.Product;
 import com.rafael.sales.domain.model.Sale;
 import com.rafael.sales.domain.model.StatusSale;
@@ -10,7 +8,7 @@ import com.rafael.sales.domain.repository.ProductRepository;
 import com.rafael.sales.domain.repository.ProductSaleRepository;
 import com.rafael.sales.domain.repository.SaleRepository;
 import lombok.AllArgsConstructor;
-import org.springframework.http.ResponseEntity;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +22,9 @@ import java.util.Optional;
 public class RegisterSaleService {
 
     private static final String PRODUCT_NOT_FOUND = "Preencha os campos corretamente";
+    private static final String NO_PRODUCT_LINKED = "Nenhum produto vinculado a venda";
+    private static final String INSUFFICIENT_STOCK = "Não há estoque suficiente para a venda do produto %s, " +
+            "quantidade em estoque: %s";
 
     private final SaleRepository saleRepository;
     private final ProductRepository productRepository;
@@ -35,19 +36,18 @@ public class RegisterSaleService {
         sale.setStatus(StatusSale.EMITIDA);
 
         if (sale.getItems().isEmpty()) {
-            throw new ProductNotFoundException("Nenhum produto foi vinculado a venda");
+            throw new BusinessException(NO_PRODUCT_LINKED);
         }
 
         List<Product> productList = new ArrayList<>();
         sale.getItems().forEach(itemSale -> {
             if (itemSale.getProduct().getId() == null)
-                throw new ProductNotFoundException(PRODUCT_NOT_FOUND);
+                throw new EntityNotFoundException(PRODUCT_NOT_FOUND);
 
             Optional<Product> product = productRepository.findById(itemSale.getProduct().getId());
 
             if (product.get().getQuantity().compareTo(itemSale.getQuantity()) < 1) {
-                throw new SaleException("Não há estóque suficiente para a venda do produto " + product.get().getName()
-                        + ", quantidade em estoque: " + product.get().getQuantity());
+                throw new InsufficientStockException(String.format(INSUFFICIENT_STOCK, product.get().getName(), product.get().getQuantity()));
             }
 
             product.get().setQuantity(product.get().getQuantity().subtract(itemSale.getQuantity()));
@@ -61,7 +61,7 @@ public class RegisterSaleService {
     public void edit(Sale sale) {
         Optional<Sale> saleEdit = saleRepository.findById(sale.getId());
         if (saleEdit.get().getStatus() == StatusSale.CANCELED) {
-            throw new SaleException("Não é possivel editar uma venda cancelada!");
+            throw new BusinessException("Não é possivel editar uma venda cancelada!");
         }
 
         saleEdit.ifPresent(value -> value.setStatus(sale.getStatus()));
@@ -72,7 +72,7 @@ public class RegisterSaleService {
                 if (!ps.get().getQuantity().equals(item.getQuantity())) {
                     Optional<Product> product = productRepository.findById(ps.get().getProduct().getId());
                     if (item.getQuantity().add(product.get().getQuantity()).compareTo(ps.get().getQuantity()) < 0) {
-                        throw new ProductException("Quantidade de estoque insuficiente");
+                        throw new InsufficientStockException("Quantidade de estoque insuficiente");
                     }
 
                     if (item.getQuantity().compareTo(ps.get().getQuantity()) != 0) {
@@ -97,12 +97,8 @@ public class RegisterSaleService {
 
     public Sale cancel(Sale sale) {
         Optional<Sale> saleCancel = saleRepository.findById(sale.getId());
-        if (saleCancel.isEmpty()) {
-            throw new SaleException("Está venda não existe!");
-        }
-
-        if (saleCancel.get().getStatus().equals(StatusSale.CANCELED)){
-            throw new SaleException("Venda já cancelada!");
+        if (saleCancel.isEmpty() || saleCancel.get().getStatus().equals(StatusSale.CANCELED)) {
+            throw new BusinessException("Está venda não existe!");
         }
 
         saleCancel.get().getItems().forEach(item -> {

@@ -3,6 +3,7 @@ package com.rafael.sales.domain.model;
 import jakarta.persistence.*;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -26,6 +27,7 @@ public class Sale {
     @NotBlank
     private String description;
 
+    @NotNull
     @Enumerated(EnumType.STRING)
     private StatusSale status;
 
