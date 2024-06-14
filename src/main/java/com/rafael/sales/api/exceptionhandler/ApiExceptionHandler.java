@@ -2,6 +2,7 @@ package com.rafael.sales.api.exceptionhandler;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
+import com.fasterxml.jackson.databind.exc.PropertyBindingException;
 import com.rafael.sales.domain.exception.EntityInUseException;
 import com.rafael.sales.domain.exception.EntityNotFoundException;
 import com.rafael.sales.domain.exception.InsufficientStockException;
@@ -101,7 +102,8 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     @Override
-    protected ResponseEntity<Object> handleExceptionInternal(Exception ex, Object body, HttpHeaders headers, HttpStatusCode statusCode, WebRequest request) {
+    protected ResponseEntity<Object> handleExceptionInternal(Exception ex, Object body, HttpHeaders headers,
+                                                             HttpStatusCode statusCode, WebRequest request) {
         if (body == null) {
             body = Problem.builder()
                     .timestamp(LocalDateTime.now())
@@ -120,11 +122,14 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     @Override
-    protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+    protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex,
+                                                                  HttpHeaders headers, HttpStatusCode status, WebRequest request) {
         Throwable rootCause = ExceptionUtils.getRootCause(ex);
 
         if (rootCause instanceof InvalidFormatException) {
             return handleInvalidFormatException((InvalidFormatException) rootCause, headers, status, request);
+        } else if (rootCause instanceof PropertyBindingException) {
+            return handlePropertyBinding((PropertyBindingException) rootCause, headers, status, request);
         }
 
         ProblemType problemType = ProblemType.ERROR_SYNTAX;
@@ -135,7 +140,8 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     @Override
-    protected ResponseEntity<Object> handleHttpMediaTypeNotSupported(HttpMediaTypeNotSupportedException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+    protected ResponseEntity<Object> handleHttpMediaTypeNotSupported(HttpMediaTypeNotSupportedException ex,
+                                                                     HttpHeaders headers, HttpStatusCode status, WebRequest request) {
         ProblemType problemType = ProblemType.MEDIA_TYPE_NOT_SUPPORTED;
         String detail = "O formato do objeto não é suportado pela API";
 
@@ -145,11 +151,27 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     @Override
-    protected ResponseEntity<Object> handleNoResourceFoundException(NoResourceFoundException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+    protected ResponseEntity<Object> handleNoResourceFoundException(NoResourceFoundException ex, HttpHeaders headers,
+                                                                    HttpStatusCode status, WebRequest request) {
         ProblemType problemType = ProblemType.RESOURCE_NOT_FOUND;
         String detail = String.format("O recurso /%s que você tentou acessar, é inexistente.", ex.getResourcePath());
 
         Problem problem = createProblemBuilder(status, problemType, detail).build();
+
+        return handleExceptionInternal(ex, problem, headers, status, request);
+    }
+
+    private ResponseEntity<Object> handlePropertyBinding(PropertyBindingException ex, HttpHeaders headers,
+                                                         HttpStatusCode status, WebRequest request) {
+        String path = joinPath(ex.getPath());
+
+        ProblemType problemType = ProblemType.INVALID_DATA;
+        String detail = String.format("A propriedade '%s' não existe. " +
+                "Corrija ou remova essa propriedade e tente novamente.", path);
+
+        Problem problem = createProblemBuilder(status, problemType, detail)
+                .userMessage("Ocorreu um erro inesperado no sistema, tente novamente. Se o problema persistir entre em contato")
+                .build();
 
         return handleExceptionInternal(ex, problem, headers, status, request);
     }

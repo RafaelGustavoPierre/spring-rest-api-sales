@@ -9,6 +9,8 @@ import com.rafael.sales.domain.repository.ProductSaleRepository;
 import com.rafael.sales.domain.repository.SaleRepository;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,7 +23,7 @@ import java.util.Optional;
 @Service
 public class RegisterSaleService {
 
-    private static final String PRODUCT_NOT_FOUND = "Preencha os campos corretamente";
+    private static final String PRODUCT_NOT_FOUND = "Produto de não encontrado, informe um código valído!";
     private static final String NO_PRODUCT_LINKED = "Nenhum produto vinculado a venda";
     private static final String INSUFFICIENT_STOCK = "Não há estoque suficiente para a venda do produto %s, " +
             "quantidade em estoque: %s";
@@ -83,8 +85,8 @@ public class RegisterSaleService {
                             var quantity = item.getQuantity().subtract(ps.get().getQuantity());
                             product.get().setQuantity(quantity.add(product.get().getQuantity()));
                         }
-
                     }
+                    System.out.println(item.getPrice());
                     item.setQuantity(ps.get().getQuantity());
                     productRepository.save(product.get());
                 }
@@ -92,7 +94,6 @@ public class RegisterSaleService {
         });
 
         Sale prod = saleRepository.save(saleEdit.get());
-        System.out.println(prod.toString());
     }
 
     public Sale cancel(Sale sale) {

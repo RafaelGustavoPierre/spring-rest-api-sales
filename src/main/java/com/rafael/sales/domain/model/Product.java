@@ -17,6 +17,7 @@ import java.math.BigInteger;
 @Setter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity
+@ToString
 public class Product {
 
     @EqualsAndHashCode.Include

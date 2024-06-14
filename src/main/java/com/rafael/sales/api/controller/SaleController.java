@@ -37,12 +37,13 @@ public class SaleController {
         return registerSaleService.save(sale);
     }
 
-    @PutMapping
-    public ResponseEntity<Sale> edit(@RequestBody @Valid Sale sale) {
-        if (!saleRepository.existsById(sale.getId())) {
+    @PutMapping("/{saleId}")
+    public ResponseEntity<Sale> edit(@PathVariable Long saleId, @RequestBody @Valid Sale sale) {
+        if (!saleRepository.existsById(saleId)) {
             return ResponseEntity.notFound().build();
         }
 
+        sale.setId(saleId);
         registerSaleService.edit(sale);
         return ResponseEntity.ok().build();
     }
