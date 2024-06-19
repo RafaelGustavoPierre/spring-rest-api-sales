@@ -2,6 +2,7 @@ package com.rafael.sales.domain.service;
 
 import com.rafael.sales.domain.exception.*;
 import com.rafael.sales.domain.model.Product;
+import com.rafael.sales.domain.model.ProductSale;
 import com.rafael.sales.domain.model.Sale;
 import com.rafael.sales.domain.model.StatusSale;
 import com.rafael.sales.domain.repository.ProductRepository;
@@ -16,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,7 +32,7 @@ public class RegisterSaleService {
 
     private final SaleRepository saleRepository;
     private final ProductRepository productRepository;
-    private final ProductSaleRepository productSaleRepository;
+    private final RegisterProductService registerProductService;
 
     @Transactional
     public Sale save(Sale sale) {
@@ -60,41 +62,46 @@ public class RegisterSaleService {
     }
 
     @Transactional
-    public void edit(Sale sale) {
+    public Sale edit(Sale sale) {
         Optional<Sale> saleEdit = saleRepository.findById(sale.getId());
+
         if (saleEdit.get().getStatus() == StatusSale.CANCELED) {
             throw new BusinessException("Não é possivel editar uma venda cancelada!");
         }
 
         saleEdit.ifPresent(value -> value.setStatus(sale.getStatus()));
 
-        saleEdit.get().getItems().forEach(item -> {
-            var ps = sale.getItems().stream().filter(i -> i.getProduct().getId().equals(item.getProduct().getId())).findFirst();
-            if (ps.isPresent()) {
-                if (!ps.get().getQuantity().equals(item.getQuantity())) {
-                    Optional<Product> product = productRepository.findById(ps.get().getProduct().getId());
-                    if (item.getQuantity().add(product.get().getQuantity()).compareTo(ps.get().getQuantity()) < 0) {
-                        throw new InsufficientStockException("Quantidade de estoque insuficiente");
-                    }
+        sale.getItems().forEach(item -> {
+            Optional<ProductSale> productSale = saleEdit.get().getItems().stream().filter(i -> i.getProduct().getId().equals(item.getProduct().getId())).findFirst();
+            var product = registerProductService.findProductById(item.getProduct().getId());
 
-                    if (item.getQuantity().compareTo(ps.get().getQuantity()) != 0) {
-                        if (item.getQuantity().compareTo(ps.get().getQuantity()) < 0) {
-                            var quantity = ps.get().getQuantity().subtract(item.getQuantity());
-                            product.get().setQuantity(product.get().getQuantity().subtract(quantity));
-                        } else {
-                            var quantity = item.getQuantity().subtract(ps.get().getQuantity());
-                            product.get().setQuantity(quantity.add(product.get().getQuantity()));
-                        }
+            if (productSale.isEmpty()) {
+                product.setQuantity(product.getQuantity().subtract(item.getQuantity()));
+            } else if (!item.getQuantity().equals(productSale.get().getQuantity())) {
+                if (item.getQuantity().compareTo(productSale.get().getQuantity()) != 0) {
+                    if (item.getQuantity().compareTo(productSale.get().getQuantity()) < 0) {
+                        var quantity = productSale.get().getQuantity().subtract(item.getQuantity());
+                        product.setQuantity(product.getQuantity().add(quantity));
+                    } else {
+                        var quantity = productSale.get().getQuantity().subtract(item.getQuantity());
+                        product.setQuantity(product.getQuantity().add(quantity));
                     }
-                    System.out.println(item.getPrice());
-                    item.setQuantity(ps.get().getQuantity());
-                    productRepository.save(product.get());
                 }
             }
+
+            productRepository.save(product);
         });
 
-        Sale prod = saleRepository.save(saleEdit.get());
+        saleEdit.get().getItems().clear();
+        saleEdit.get().getItems().addAll(sale.getItems());
+        saleEdit.get().prePersist();
+
+        return saleRepository.save(saleEdit.get());
     }
+
+//        saleEdit.get().getItems().clear();
+//        saleEdit.get().getItems().addAll(sale.getItems());
+//        saleEdit.get().prePersist();
 
     public Sale cancel(Sale sale) {
         Optional<Sale> saleCancel = saleRepository.findById(sale.getId());

@@ -43,9 +43,8 @@ public class SaleController {
             return ResponseEntity.notFound().build();
         }
 
-        sale.setId(saleId);
-        registerSaleService.edit(sale);
-        return ResponseEntity.ok().build();
+        Sale saleRegistred = registerSaleService.edit(sale);
+        return ResponseEntity.status(HttpStatus.OK).body(saleRegistred);
     }
 
     @PostMapping("/cancel")

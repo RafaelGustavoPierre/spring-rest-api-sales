@@ -16,7 +16,6 @@ import java.util.List;
 @Setter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity
-@ToString
 public class Sale {
 
     @Id
