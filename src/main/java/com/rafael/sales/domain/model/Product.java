@@ -25,11 +25,8 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank
-    @Size(max = 30)
     private String name;
 
-    @NotNull
     private BigInteger quantity;
 
 }

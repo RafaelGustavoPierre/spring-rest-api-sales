@@ -1,5 +1,6 @@
 package com.rafael.sales.domain.service;
 
+import com.rafael.sales.domain.exception.BusinessException;
 import com.rafael.sales.domain.exception.EntityInUseException;
 import com.rafael.sales.domain.exception.EntityNotFoundException;
 import com.rafael.sales.domain.model.Product;
@@ -14,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class RegisterProductService {
 
     public static final String PRODUCT_IN_USE = "O produto de código %d está vinculado a uma venda!";
+    public static final String PRODUCT_NOT_FOUND = "O produto de código %d não foi encontrado!";
 
     private final ProductRepository productRepository;
 
@@ -29,6 +31,10 @@ public class RegisterProductService {
 
     public void exclude(Long productId) {
         try {
+            var existsProduct = productRepository.existsById(productId);
+            if (!existsProduct)
+                throw new EntityNotFoundException(String.format(PRODUCT_NOT_FOUND, productId));
+
             productRepository.deleteById(productId);
         } catch (DataIntegrityViolationException e) {
             throw new EntityInUseException(String.format(PRODUCT_IN_USE, productId));
