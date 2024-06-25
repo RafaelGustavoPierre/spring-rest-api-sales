@@ -1,28 +1,18 @@
-package com.rafael.sales.domain.model;
+package com.rafael.sales.api.model.input;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
 @Getter
 @Setter
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
-@Entity
-public class ProductSale {
+public class SaleProductInput {
 
-    @EqualsAndHashCode.Include
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Id
     private Long id;
 
     @NotNull
@@ -34,11 +24,11 @@ public class ProductSale {
     @JoinColumn(name = "id_sale")
     @ManyToOne
     @JsonIgnore
-    private Sale sale;
+    private SaleInput sale;
 
     @JoinColumn(name = "id_product")
     @NotNull
     @ManyToOne
-    private Product product;
+    private ProductInput product;
 
 }

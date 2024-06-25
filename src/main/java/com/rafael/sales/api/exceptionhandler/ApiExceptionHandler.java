@@ -3,6 +3,7 @@ package com.rafael.sales.api.exceptionhandler;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.fasterxml.jackson.databind.exc.PropertyBindingException;
+import com.rafael.sales.domain.exception.BusinessException;
 import com.rafael.sales.domain.exception.EntityInUseException;
 import com.rafael.sales.domain.exception.EntityNotFoundException;
 import com.rafael.sales.domain.exception.InsufficientStockException;
@@ -64,6 +65,17 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
     public ResponseEntity<?> handleInsufficientStockException(InsufficientStockException ex, WebRequest request) {
         HttpStatus status = HttpStatus.CONFLICT;
         ProblemType problemType = ProblemType.INSUFFICIENT_STOCK;
+        String detail = ex.getMessage();
+
+        Problem problem = createProblemBuilder(status, problemType, detail).build();
+
+        return handleExceptionInternal(ex, problem, new HttpHeaders(), status, request);
+    }
+
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<?> handleBusinessException(BusinessException ex, WebRequest request) {
+        HttpStatus status = HttpStatus.NOT_FOUND;
+        ProblemType problemType = ProblemType.RESOURCE_NOT_FOUND;
         String detail = ex.getMessage();
 
         Problem problem = createProblemBuilder(status, problemType, detail).build();

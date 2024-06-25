@@ -12,6 +12,8 @@ import java.math.BigInteger;
 @Setter
 public class ProductInput {
 
+    private Long id;
+
     @NotBlank
     @Size(max = 30)
     private String name;
