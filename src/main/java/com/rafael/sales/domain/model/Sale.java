@@ -11,6 +11,7 @@ import lombok.ToString;
 
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -22,6 +23,8 @@ public class Sale {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @EqualsAndHashCode.Include
     private Long id;
+
+    private String code;
 
     @NotBlank
     private String description;
@@ -43,6 +46,10 @@ public class Sale {
         this.items.forEach(item -> {
             item.setSale(this);
         });
+
+        if (this.code == null) {
+            setCode(UUID.randomUUID().toString());
+        }
     }
 
 }

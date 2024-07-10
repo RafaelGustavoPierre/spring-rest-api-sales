@@ -6,7 +6,6 @@ import com.rafael.sales.api.model.SaleModel;
 import com.rafael.sales.api.model.input.SaleInput;
 import com.rafael.sales.domain.exception.*;
 import com.rafael.sales.domain.model.Product;
-import com.rafael.sales.domain.model.ProductSale;
 import com.rafael.sales.domain.model.Sale;
 import com.rafael.sales.domain.model.StatusSale;
 import com.rafael.sales.domain.repository.ProductRepository;
@@ -39,8 +38,8 @@ public class RegisterSaleService {
     private SaleModelAssembler saleModelAssembler;
     private SaleModelDisassembler saleModelDisassembler;
 
-    public Sale findSaleById(Long saleId) {
-        return saleRepository.findById(saleId).orElseThrow(() -> new BusinessException(String.format(SALE_NOT_FOUND, saleId)));
+    public Sale findSale(String saleCode) {
+        return saleRepository.findByCode(saleCode).orElseThrow(() -> new BusinessException(String.format(SALE_NOT_FOUND, saleCode)));
     }
 
     @Transactional
@@ -73,8 +72,8 @@ public class RegisterSaleService {
     }
 
     @Transactional
-    public SaleModel edit(SaleInput saleInput) {
-        Sale saleEdit = this.findSaleById(saleInput.getId());
+    public SaleModel edit(String saleCode, SaleInput saleInput) {
+        Sale saleEdit = this.findSale(saleCode);
 
         if (saleEdit.getStatus() == StatusSale.CANCELED) {
             throw new BusinessException("Não é possivel editar uma venda cancelada!");
@@ -119,10 +118,10 @@ public class RegisterSaleService {
         return saleModelAssembler.toModel(saleRepository.save(saleEdit));
     }
 
-    public void cancel(Long saleId) {
-        var saleCancel = this.findSaleById(saleId);
+    public void cancel(String saleCode) {
+        var saleCancel = this.findSale(saleCode);
         if (saleCancel.getStatus().equals(StatusSale.CANCELED) || saleCancel == null) {
-            throw new BusinessException(String.format(SALE_ALREADY_CANCELED, saleId));
+            throw new BusinessException(String.format(SALE_ALREADY_CANCELED, saleCode));
         }
 
         saleCancel.getItems().forEach(item -> {

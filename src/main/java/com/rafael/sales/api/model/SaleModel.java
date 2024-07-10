@@ -11,7 +11,7 @@ import java.util.List;
 @Setter
 public class SaleModel {
 
-    private Long id;
+    private String code;
     private String description;
     private StatusSale status;
     private OffsetDateTime dateRegister;

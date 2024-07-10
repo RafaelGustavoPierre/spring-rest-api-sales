@@ -30,10 +30,10 @@ public class SaleController {
         return saleModelAssembler.toCollectionModel(sale);
     }
 
-    @GetMapping("/{saleId}")
+    @GetMapping("/{saleCode}")
     @ResponseStatus(HttpStatus.OK)
-    public SaleModel find(@PathVariable Long saleId) {
-        return saleModelAssembler.toModel(registerSaleService.findSaleById(saleId));
+    public SaleModel find(@PathVariable String saleCode) {
+        return saleModelAssembler.toModel(registerSaleService.findSale(saleCode));
     }
 
     @PostMapping
@@ -42,18 +42,19 @@ public class SaleController {
         return registerSaleService.save(saleInput);
     }
 
-    @PutMapping("/{saleId}")
-    public ResponseEntity<SaleModel> edit(@PathVariable Long saleId, @RequestBody @Valid SaleInput saleInput) {
-        if (!saleRepository.existsById(saleId)) {
+    @PutMapping("/{saleCode}")
+    public ResponseEntity<SaleModel> edit(@PathVariable String saleCode, @RequestBody @Valid SaleInput saleInput) {
+        if (!saleRepository.existsByCode(saleCode)) {
             return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.status(HttpStatus.OK).body(registerSaleService.edit(saleInput));
+
+        return ResponseEntity.status(HttpStatus.OK).body(registerSaleService.edit(saleCode, saleInput));
     }
 
-    @DeleteMapping("/{saleId}")
+    @DeleteMapping("/{saleCode}")
     @ResponseStatus(HttpStatus.OK)
-    public void cancel(@PathVariable Long saleId) {
-        registerSaleService.cancel(saleId);
+    public void cancel(@PathVariable String saleCode) {
+        registerSaleService.cancel(saleCode);
     }
 
 }
