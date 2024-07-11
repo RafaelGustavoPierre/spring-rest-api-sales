@@ -4,10 +4,12 @@ import com.rafael.sales.api.assembler.SaleModelAssembler;
 import com.rafael.sales.api.model.SaleModel;
 import com.rafael.sales.api.model.input.SaleInput;
 import com.rafael.sales.domain.model.Sale;
+import com.rafael.sales.domain.model.StatusSale;
 import com.rafael.sales.domain.repository.SaleRepository;
 import com.rafael.sales.domain.service.RegisterSaleService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.apache.commons.lang3.EnumUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,8 +27,15 @@ public class SaleController {
     private final SaleModelAssembler saleModelAssembler;
 
     @GetMapping
-    public List<SaleModel> list() {
-        List<Sale> sale = saleRepository.findAll();
+    public List<SaleModel> list(@RequestParam(required = false) boolean status) {
+        List<Sale> sale = null;
+
+        if (status == false) {
+            sale = saleRepository.findEmitidos();
+        } else {
+            sale = saleRepository.findAll();
+        }
+
         return saleModelAssembler.toCollectionModel(sale);
     }
 
@@ -47,7 +56,6 @@ public class SaleController {
         if (!saleRepository.existsByCode(saleCode)) {
             return ResponseEntity.notFound().build();
         }
-
         return ResponseEntity.status(HttpStatus.OK).body(registerSaleService.edit(saleCode, saleInput));
     }
 

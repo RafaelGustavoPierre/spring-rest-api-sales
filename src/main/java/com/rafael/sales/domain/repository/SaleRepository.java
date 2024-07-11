@@ -15,6 +15,9 @@ public interface SaleRepository extends JpaRepository<Sale, Long> {
     @Query("from Sale WHERE code = :code")
     Optional<Sale> findByCode(@Param("code") String code);
 
+    @Query("from Sale WHERE status = 'EMITIDA'")
+    List<Sale> findEmitidos();
+
     boolean existsByCode(String code);
 
 }
