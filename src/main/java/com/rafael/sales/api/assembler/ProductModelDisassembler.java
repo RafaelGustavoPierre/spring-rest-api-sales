@@ -6,6 +6,8 @@ import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
 
+import java.util.UUID;
+
 @Component
 @AllArgsConstructor
 public class ProductModelDisassembler {
@@ -17,7 +19,7 @@ public class ProductModelDisassembler {
     }
 
     public void copyToDomainObject(ProductInput productInput, Product product) {
-        modelMapper.map(product, productInput);
+        modelMapper.map(productInput, product);
     }
 
 

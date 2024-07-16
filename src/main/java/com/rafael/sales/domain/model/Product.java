@@ -9,6 +9,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -26,7 +27,9 @@ public class Product {
     private Long id;
 
     private String name;
-
     private BigInteger quantity;
+
+    @OneToOne(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private ProductMedia productMedia;
 
 }
