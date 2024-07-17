@@ -1,29 +1,21 @@
 package com.rafael.sales.api.controller;
 
-import com.rafael.sales.api.assembler.ProductMediaModelDisassembler;
 import com.rafael.sales.api.assembler.ProductModelAssembler;
 import com.rafael.sales.api.assembler.ProductModelDisassembler;
 import com.rafael.sales.api.model.ProductModel;
 import com.rafael.sales.api.model.input.ProductInput;
-import com.rafael.sales.api.model.input.ProductMediaInput;
 import com.rafael.sales.domain.model.Product;
-import com.rafael.sales.domain.model.ProductMedia;
 import com.rafael.sales.domain.repository.ProductMediaRepository;
 import com.rafael.sales.domain.repository.ProductRepository;
 import com.rafael.sales.domain.service.RegisterProductService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
-import org.springframework.beans.BeanUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.List;
-import java.util.UUID;
 
 @AllArgsConstructor
 @RestController
@@ -49,7 +41,7 @@ public class ProductController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ProductModel send(@Valid ProductInput productInput)  {
+    public ProductModel send(@Valid ProductInput productInput) throws IOException {
         Product product = productModelDisassembler.toDomainObject(productInput);
 
         return productModelAssembler.toModel(registerProductService.save(product, productInput));

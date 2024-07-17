@@ -1,20 +1,23 @@
 package com.rafael.sales.domain.service;
 
 import com.rafael.sales.api.model.input.ProductInput;
-import com.rafael.sales.domain.exception.BusinessException;
 import com.rafael.sales.domain.exception.EntityInUseException;
 import com.rafael.sales.domain.exception.EntityNotFoundException;
 import com.rafael.sales.domain.model.Product;
 import com.rafael.sales.domain.model.ProductMedia;
 import com.rafael.sales.domain.repository.ProductMediaRepository;
 import com.rafael.sales.domain.repository.ProductRepository;
+
+import com.rafael.sales.domain.service.StorageService.File;
+
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.UUID;
 
 @AllArgsConstructor
@@ -27,10 +30,13 @@ public class RegisterProductService {
     private final ProductRepository productRepository;
     private final ProductMediaRepository productMediaRepository;
 
+    private final StorageService storageService;
+
+
     @Transactional
-    public Product save(Product product, ProductInput productInput) {
+    public Product save(Product product, ProductInput productInput) throws IOException {
         MultipartFile file = productInput.getFile();
-        String fileName = generateFileName(file.getName());
+        String fileName = storageService.generateFileName(file.getOriginalFilename());
 
         ProductMedia productMedia = new ProductMedia();
         productMedia.setFileName(fileName);
@@ -42,7 +48,18 @@ public class RegisterProductService {
 
         var media = productMediaRepository.save(productMedia);
         product.setProductMedia(media);
-       return product;
+
+
+        File fileInfo = File.builder()
+                .fileName(media.getFileName())
+                .contentType(media.getContentType())
+                .size(media.getSize())
+                .inputStream(productInput.getFile().getInputStream())
+                .build();
+
+        storageService.save(fileName, fileInfo);
+
+        return product;
     }
 
     @Transactional
