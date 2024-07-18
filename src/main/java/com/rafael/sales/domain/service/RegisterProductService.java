@@ -57,7 +57,7 @@ public class RegisterProductService {
                 .inputStream(productInput.getFile().getInputStream())
                 .build();
 
-        storageService.save(fileName, fileInfo);
+        storageService.save(fileInfo);
 
         return product;
     }

@@ -15,7 +15,7 @@ public interface StorageService {
 
     void sendS3(File file);
 
-    default void save(String fileName, File file) {
+    default void save(File file) {
         this.sendS3(file);
     }
 
