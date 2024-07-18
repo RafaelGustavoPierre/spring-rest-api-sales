@@ -48,14 +48,11 @@ public class ProductController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ProductModel> update(@PathVariable Long id, @Valid @RequestBody ProductInput productInput) {
-        Product productRegistred = registerProductService.findProductById(id);
+    public ResponseEntity<ProductModel> update(@PathVariable Long id, @Valid ProductInput productInput) throws IOException {
+        Product product = registerProductService.findProductById(id);
 
-        productRegistred.setName(productInput.getName());
-        productRegistred.setQuantity(productInput.getQuantity().add(productRegistred.getQuantity()));
-
-//        registerProductService.save(productRegistred);
-        return ResponseEntity.ok(productModelAssembler.toModel(productRegistred));
+        registerProductService.updateProduct(product, productInput);
+        return ResponseEntity.ok(productModelAssembler.toModel(product));
     }
 
     @DeleteMapping("/{productId}")

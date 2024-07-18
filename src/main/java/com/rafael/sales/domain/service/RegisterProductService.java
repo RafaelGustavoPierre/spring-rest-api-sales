@@ -50,12 +50,7 @@ public class RegisterProductService {
         product.setProductMedia(media);
 
 
-        File fileInfo = File.builder()
-                .fileName(media.getFileName())
-                .contentType(media.getContentType())
-                .size(media.getSize())
-                .inputStream(productInput.getFile().getInputStream())
-                .build();
+        File fileInfo = mountFile(productInput, media);
 
         storageService.save(fileInfo);
 
@@ -67,16 +62,47 @@ public class RegisterProductService {
         return productRepository.findById(id).orElseThrow(() -> new EntityNotFoundException(id));
     }
 
-    public void exclude(Long productId) {
-        try {
-            var existsProduct = productRepository.existsById(productId);
-            if (!existsProduct)
-                throw new EntityNotFoundException(String.format(PRODUCT_NOT_FOUND, productId));
+    @Transactional
+    public Product updateProduct(Product product, ProductInput productInput) throws IOException {
+//        TODO Remover do S3
+        storageService.removeS3(product.getProductMedia().getFileName());
 
-            productRepository.deleteById(productId);
-        } catch (DataIntegrityViolationException e) {
-            throw new EntityInUseException(String.format(PRODUCT_IN_USE, productId));
-        }
+//        TODO Remover a midia do banco da midia
+        productMediaRepository.delete(product.getProductMedia());
+
+        String fileName = generateFileName(productInput.getFile().getOriginalFilename());
+
+//        TODO montar a midia do produto
+        ProductMedia productMedia = new ProductMedia();
+        productMedia.setFileName(fileName);
+        productMedia.setContentType(productInput.getFile().getContentType());
+        productMedia.setSize(productInput.getFile().getSize());
+        productMedia.setProduct(product);
+
+        var media = productMediaRepository.save(productMedia);
+        product.setProductMedia(media);
+        product.setQuantity(productInput.getQuantity());
+        product.setName(product.getName());
+
+        File fileInfo = mountFile(productInput, product.getProductMedia());
+
+        storageService.save(fileInfo);
+
+        return product;
+    }
+
+    public void exclude(Long productId) {
+
+    }
+
+    private static File mountFile(ProductInput productInput, ProductMedia media) throws IOException {
+        File fileInfo = File.builder()
+                .fileName(media.getFileName())
+                .contentType(media.getContentType())
+                .size(media.getSize())
+                .inputStream(productInput.getFile().getInputStream())
+                .build();
+        return fileInfo;
     }
 
     private String generateFileName(String fileName) {

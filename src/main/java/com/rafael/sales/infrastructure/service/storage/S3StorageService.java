@@ -2,6 +2,7 @@ package com.rafael.sales.infrastructure.service.storage;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
+import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.rafael.sales.core.storage.StorageProperties;
@@ -37,6 +38,19 @@ public class S3StorageService implements StorageService {
             throw new StorageException("Não foi possivel subir arquivo para amazon S3", e);
         }
     }
+
+    @Override
+    public void removeS3(String fileName) {
+        try {
+            String fileDirectory = getPathFile(fileName);
+
+            var deleteObjectRequest = new DeleteObjectRequest(storageProperties.getS3().getBucket(), fileDirectory);
+            amazonS3.deleteObject(deleteObjectRequest);
+        } catch (Exception e) {
+            throw new StorageException("Não foi possivel remover o arquivo da S3", e);
+        }
+    }
+
 
     private String getPathFile(String fileName) {
         return String.format("%s/%s", storageProperties.getS3().getBucketPath(), fileName);
