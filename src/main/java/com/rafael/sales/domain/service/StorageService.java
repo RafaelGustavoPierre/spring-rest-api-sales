@@ -13,6 +13,8 @@ public interface StorageService {
         return UUID.randomUUID().toString() + "_" + fileName;
     }
 
+    MediaRecover recorver(String fileName);
+
     void sendS3(File file);
 
     void removeS3(String fileName);
@@ -28,6 +30,12 @@ public interface StorageService {
         private String contentType;
         private Long size;
         private InputStream inputStream;
+    }
+
+    @Builder
+    @Getter
+    class MediaRecover {
+        private String url;
     }
 
 }

@@ -5,18 +5,23 @@ import com.rafael.sales.api.assembler.ProductModelDisassembler;
 import com.rafael.sales.api.model.ProductModel;
 import com.rafael.sales.api.model.input.ProductInput;
 import com.rafael.sales.domain.model.Product;
+import com.rafael.sales.domain.model.ProductMedia;
 import com.rafael.sales.domain.repository.ProductMediaRepository;
 import com.rafael.sales.domain.repository.ProductRepository;
+import com.rafael.sales.domain.service.RegisterProductMediaService;
 import com.rafael.sales.domain.service.RegisterProductService;
+import com.rafael.sales.domain.service.StorageService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
+import com.rafael.sales.domain.service.StorageService.MediaRecover;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
 @AllArgsConstructor
 @RestController
@@ -24,6 +29,8 @@ import java.util.List;
 public class ProductController {
 
     private final RegisterProductService registerProductService;
+    private final RegisterProductMediaService registerProductMediaService;
+
     private final ProductRepository productRepository;
     private final ProductMediaRepository productMediaRepository;
 
@@ -36,8 +43,21 @@ public class ProductController {
     }
 
     @GetMapping("/{productId}")
-    public ProductModel find(@PathVariable Long productId) {
-        return productModelAssembler.toModel(registerProductService.findProductById(productId));
+    public ResponseEntity<ProductModel> find(@PathVariable Long productId) {
+        ProductModel productModel = productModelAssembler.toModel(registerProductService.findProductById(productId));
+        String productMediaName = registerProductMediaService.findByProductMedia(productId);
+
+        if (productMediaName == null) {
+            return ResponseEntity
+                    .status(HttpStatus.FOUND)
+                    .body(productModel);
+        }
+
+        MediaRecover recover = registerProductService.recover(productMediaName);
+        return ResponseEntity
+                .status(HttpStatus.FOUND)
+                .header(HttpHeaders.LOCATION, recover.getUrl())
+                .body(productModel);
     }
 
     @PostMapping

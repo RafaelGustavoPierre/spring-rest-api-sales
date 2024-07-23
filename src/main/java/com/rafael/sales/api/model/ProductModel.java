@@ -14,6 +14,6 @@ public class ProductModel {
     private Long id;
     private String name;
     private BigInteger quantity;
-    private ProductMediaModel media;
+//    private ProductMediaModel media;
 
 }

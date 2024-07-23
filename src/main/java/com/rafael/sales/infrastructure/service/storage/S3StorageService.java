@@ -10,7 +10,11 @@ import com.rafael.sales.domain.exception.StorageException;
 import com.rafael.sales.domain.service.StorageService;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cglib.core.ClassLoaderAwareGeneratorStrategy;
 import org.springframework.stereotype.Service;
+
+import java.io.InputStream;
+import java.net.URL;
 
 public class S3StorageService implements StorageService {
 
@@ -19,6 +23,15 @@ public class S3StorageService implements StorageService {
 
     @Autowired
     private StorageProperties storageProperties;
+
+    @Override
+    public MediaRecover recorver(String fileName) {
+        String filePath = getPathFile(fileName);
+
+        URL url = amazonS3.getUrl(storageProperties.getS3().getBucket(), filePath);
+
+        return MediaRecover.builder().url(url.toString()).build();
+    }
 
     @Override
     public void sendS3(File file) {
@@ -51,9 +64,7 @@ public class S3StorageService implements StorageService {
         }
     }
 
-
     private String getPathFile(String fileName) {
         return String.format("%s/%s", storageProperties.getS3().getBucketPath(), fileName);
     }
-
 }

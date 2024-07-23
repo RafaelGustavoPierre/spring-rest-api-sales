@@ -7,8 +7,8 @@ import com.rafael.sales.domain.model.Product;
 import com.rafael.sales.domain.model.ProductMedia;
 import com.rafael.sales.domain.repository.ProductMediaRepository;
 import com.rafael.sales.domain.repository.ProductRepository;
-
 import com.rafael.sales.domain.service.StorageService.File;
+import com.rafael.sales.domain.service.StorageService.MediaRecover;
 
 import lombok.AllArgsConstructor;
 
@@ -74,6 +74,10 @@ public class RegisterProductService {
         storageService.save(fileInfo);
 
         return product;
+    }
+
+    public MediaRecover recover(String fileName) {
+        return storageService.recorver(fileName);
     }
 
     public void exclude(Long productId) {
