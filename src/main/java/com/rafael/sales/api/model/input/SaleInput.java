@@ -1,6 +1,5 @@
 package com.rafael.sales.api.model.input;
 
-import com.rafael.sales.domain.model.ProductSale;
 import com.rafael.sales.domain.model.StatusSale;
 import jakarta.persistence.*;
 import jakarta.validation.Valid;
@@ -36,6 +35,11 @@ public class SaleInput {
     @Valid
     @OneToMany(mappedBy = "sale", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<SaleProductInput> items;
+
+    @Valid
+    @OneToOne
+    @JoinColumn(name = "id_user")
+    private SaleUser user;
 
     @PrePersist
     @PreUpdate

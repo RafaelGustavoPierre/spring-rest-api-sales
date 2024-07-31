@@ -40,6 +40,11 @@ public class Sale {
     @OneToMany(mappedBy = "sale", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<ProductSale> items;
 
+    @Valid
+    @ManyToOne
+    @JoinColumn(name = "id_user")
+    private User user;
+
     @PrePersist
     @PreUpdate
     public void prePersist() {

@@ -8,6 +8,7 @@ import com.rafael.sales.domain.exception.*;
 import com.rafael.sales.domain.model.Product;
 import com.rafael.sales.domain.model.Sale;
 import com.rafael.sales.domain.model.StatusSale;
+import com.rafael.sales.domain.model.User;
 import com.rafael.sales.domain.repository.ProductRepository;
 import com.rafael.sales.domain.repository.SaleRepository;
 import lombok.AllArgsConstructor;
@@ -34,6 +35,7 @@ public class RegisterSaleService {
     private final ProductRepository productRepository;
 
     private final RegisterProductService registerProductService;
+    private final RegisterUserService registerUserService;
 
     private SaleModelAssembler saleModelAssembler;
     private SaleModelDisassembler saleModelDisassembler;
