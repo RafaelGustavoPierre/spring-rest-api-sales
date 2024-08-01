@@ -39,6 +39,7 @@ public class SaleInput {
     @Valid
     @OneToOne
     @JoinColumn(name = "id_user")
+    @NotNull
     private SaleUser user;
 
     @PrePersist

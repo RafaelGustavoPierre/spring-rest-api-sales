@@ -46,71 +46,71 @@ public class RegisterSaleService {
 
     @Transactional
     public SaleModel save(SaleInput saleInput) {
-        saleInput.setDateRegister(OffsetDateTime.now());
-        saleInput.setStatus(StatusSale.EMITIDA);
-
         if (saleInput.getItems().isEmpty()) {
             throw new BusinessException(NO_PRODUCT_LINKED);
         }
 
+        saleInput.setDateRegister(OffsetDateTime.now());
+
         List<Product> productList = new ArrayList<>();
-        saleInput.getItems().forEach(itemSale -> {
-            if (itemSale.getProduct().getId() == null)
-                throw new EntityNotFoundException(PRODUCT_NOT_FOUND);
+        if (saleInput.getStatus() == StatusSale.EMITIR) {
+            saleInput.getItems().forEach(itemSale -> {
+                if (itemSale.getProduct().getId() == null)
+                    throw new EntityNotFoundException(PRODUCT_NOT_FOUND);
 
-            Product product = registerProductService.findProductById(itemSale.getProduct().getId());
+                Product product = registerProductService.findProductById(itemSale.getProduct().getId());
 
-            if (product.getQuantity().compareTo(itemSale.getQuantity()) < 1) {
-                throw new InsufficientStockException(String.format(INSUFFICIENT_STOCK, product.getName(), product.getQuantity()));
-            }
+                if (product.getQuantity().compareTo(itemSale.getQuantity()) < 1) {
+                    throw new InsufficientStockException(String.format(INSUFFICIENT_STOCK, product.getName(), product.getQuantity()));
+                }
 
-            product.setQuantity(product.getQuantity().subtract(itemSale.getQuantity()));
-            productList.add(product);
-        });
-        productRepository.saveAll(productList);
+                product.setQuantity(product.getQuantity().subtract(itemSale.getQuantity()));
+                productList.add(product);
+            });
+            productRepository.saveAll(productList);
+        }
+
         Sale sale = saleRepository.save(saleModelDisassembler.toDomainObject(saleInput));
-
         return saleModelAssembler.toModel(sale);
     }
 
     @Transactional
     public SaleModel edit(String saleCode, SaleInput saleInput) {
         Sale saleEdit = this.findSale(saleCode);
-
         if (saleEdit.getStatus() == StatusSale.CANCELED) {
             throw new BusinessException("Não é possivel editar uma venda cancelada!");
         }
+
 
         saleEdit.getItems().forEach(item -> {
             var inputItemNotExists = saleInput.getItems().stream().filter(i -> i.getProduct().getId().equals(item.getProduct().getId())).findFirst();
             var product = registerProductService.findProductById(item.getProduct().getId());
 
-            if (inputItemNotExists.isEmpty()) {
+            if (inputItemNotExists.isEmpty() && saleInput.getStatus() == StatusSale.EMITIR) {
                 product.setQuantity(item.getQuantity().add(product.getQuantity()));
                 productRepository.save(product);
             }
         });
 
-        saleInput.getItems().forEach(item -> {
-            var product = registerProductService.findProductById(item.getProduct().getId());
-            var productSale = saleEdit.getItems().stream().filter(i -> i.getProduct().getId().equals(item.getProduct().getId())).findFirst();
+        if (saleInput.getStatus() == StatusSale.EMITIR) {
+            saleInput.getItems().forEach(item -> {
+                var product = registerProductService.findProductById(item.getProduct().getId());
+                var productSale = saleEdit.getItems().stream().filter(i -> i.getProduct().getId().equals(item.getProduct().getId())).findFirst();
 
-            if (productSale.isEmpty()) {
-                product.setQuantity(product.getQuantity().subtract(item.getQuantity()));
-            } else if (!item.getQuantity().equals(productSale.get().getQuantity())) {
-                if (item.getQuantity().compareTo(productSale.get().getQuantity()) != 0) {
-                    if (item.getQuantity().compareTo(productSale.get().getQuantity()) < 0) {
-                        var quantity = productSale.get().getQuantity().subtract(item.getQuantity());
-                        product.setQuantity(product.getQuantity().add(quantity));
-                    } else {
-                        var quantity = productSale.get().getQuantity().subtract(item.getQuantity());
-                        product.setQuantity(product.getQuantity().add(quantity));
-                    }
-                }
-            }
 
-            productRepository.save(product);
-        });
+// TODO QUANDO UMA VENDA É LANÇADA COMO "ORÇAMENTO" NÃO É DESCONTADO OS PRODUTOS DO ESTOQUE
+// TODO QUANDO UMA VENDA É PASSADA COM EMITIR ELA DEVE DESCONTAR NO ESTOQUE
+//  E CASO SE TIVER MENOS UNITARIO DO QUE NA VENDA JÁ SALVA ELA DESCONTE JÁ ATUALIZANDO A DIFERENÇA E VICE VERSE!
+
+// TODO                PROXIMO PASSO É VERIFICAR COMO ESTÁ CHEGANDO NESSE BREAKPOINT
+                var quantity = item.getQuantity().subtract(productSale.get().getQuantity());
+                product.setQuantity(product.getQuantity().subtract(quantity));
+
+
+                productRepository.save(product);
+                saleEdit.setStatus(StatusSale.EMITIDA);
+            });
+        }
         var saleDomain = saleModelDisassembler.toDomainObject(saleInput);
 
         saleEdit.getItems().clear();

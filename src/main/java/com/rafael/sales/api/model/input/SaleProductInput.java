@@ -3,6 +3,7 @@ package com.rafael.sales.api.model.input;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rafael.sales.api.model.ProductModel;
 import jakarta.persistence.*;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
@@ -27,9 +28,9 @@ public class SaleProductInput {
     @JsonIgnore
     private SaleInput sale;
 
-    @JoinColumn(name = "id_product")
     @NotNull
     @ManyToOne
+    @JoinColumn(name = "id_product")
     private ProductModel product;
 
 }
