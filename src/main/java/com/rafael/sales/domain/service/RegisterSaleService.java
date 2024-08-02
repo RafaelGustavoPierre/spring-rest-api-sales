@@ -5,10 +5,7 @@ import com.rafael.sales.api.assembler.SaleModelDisassembler;
 import com.rafael.sales.api.model.SaleModel;
 import com.rafael.sales.api.model.input.SaleInput;
 import com.rafael.sales.domain.exception.*;
-import com.rafael.sales.domain.model.Product;
-import com.rafael.sales.domain.model.Sale;
-import com.rafael.sales.domain.model.StatusSale;
-import com.rafael.sales.domain.model.User;
+import com.rafael.sales.domain.model.*;
 import com.rafael.sales.domain.repository.ProductRepository;
 import com.rafael.sales.domain.repository.SaleRepository;
 import lombok.AllArgsConstructor;
@@ -28,14 +25,15 @@ public class RegisterSaleService {
     private static final String NO_PRODUCT_LINKED = "Nenhum produto vinculado a venda";
     private static final String INSUFFICIENT_STOCK = "Não há estoque suficiente para a venda do produto %s, " +
             "quantidade em estoque: %s";
-    public static final String SALE_NOT_FOUND = "Venda de código %s não foi encontrada ou não existe!";
+    public static final String SALE_NOT_FOUND = "Venda de código '%s' não foi encontrada ou não existe!";
     public static final String SALE_ALREADY_CANCELED = "A venda de código %s já foi cancelada!";
+    public static final String SALE_EMITIDA = "A venda de código '%s' já foi emitida.";
+    public static final String SALE_CANCELED = "A venda de código '%s' está cancelada e não pode ser emitida!";
 
     private final SaleRepository saleRepository;
     private final ProductRepository productRepository;
 
     private final RegisterProductService registerProductService;
-    private final RegisterUserService registerUserService;
 
     private SaleModelAssembler saleModelAssembler;
     private SaleModelDisassembler saleModelDisassembler;
@@ -77,47 +75,53 @@ public class RegisterSaleService {
     @Transactional
     public SaleModel edit(String saleCode, SaleInput saleInput) {
         Sale saleEdit = this.findSale(saleCode);
-        if (saleEdit.getStatus() == StatusSale.CANCELED) {
-            throw new BusinessException("Não é possivel editar uma venda cancelada!");
+
+        if (saleEdit.getStatus().equals(StatusSale.EMITIDA)) {
+            throw new EntityConflictException(String.format(SALE_EMITIDA, saleCode));
+        } else if (saleEdit.getStatus().equals(StatusSale.CANCELED)) {
+            throw new EntityConflictException(String.format(SALE_CANCELED, saleCode));
         }
 
 
-        saleEdit.getItems().forEach(item -> {
-            var inputItemNotExists = saleInput.getItems().stream().filter(i -> i.getProduct().getId().equals(item.getProduct().getId())).findFirst();
-            var product = registerProductService.findProductById(item.getProduct().getId());
+        if (saleInput.getStatus().equals(StatusSale.EMITIR)) {
+            saleEdit.getItems().forEach(item -> {
+                var productRemove = saleInput.getItems().stream().filter(i -> i.getProduct().getId().equals(item.getProduct().getId())).findFirst();
 
-            if (inputItemNotExists.isEmpty() && saleInput.getStatus() == StatusSale.EMITIR) {
-                product.setQuantity(item.getQuantity().add(product.getQuantity()));
-                productRepository.save(product);
-            }
-        });
-
-        if (saleInput.getStatus() == StatusSale.EMITIR) {
-            saleInput.getItems().forEach(item -> {
-                var product = registerProductService.findProductById(item.getProduct().getId());
-                var productSale = saleEdit.getItems().stream().filter(i -> i.getProduct().getId().equals(item.getProduct().getId())).findFirst();
-
-
-// TODO QUANDO UMA VENDA É LANÇADA COMO "ORÇAMENTO" NÃO É DESCONTADO OS PRODUTOS DO ESTOQUE
-// TODO QUANDO UMA VENDA É PASSADA COM EMITIR ELA DEVE DESCONTAR NO ESTOQUE
-//  E CASO SE TIVER MENOS UNITARIO DO QUE NA VENDA JÁ SALVA ELA DESCONTE JÁ ATUALIZANDO A DIFERENÇA E VICE VERSE!
-
-// TODO                PROXIMO PASSO É VERIFICAR COMO ESTÁ CHEGANDO NESSE BREAKPOINT
-                var quantity = item.getQuantity().subtract(productSale.get().getQuantity());
-                product.setQuantity(product.getQuantity().subtract(quantity));
-
-
-                productRepository.save(product);
-                saleEdit.setStatus(StatusSale.EMITIDA);
+                if (productRemove.isEmpty()) {
+                    Product product = registerProductService.findProductById(item.getProduct().getId());
+                    product.setQuantity(product.getQuantity().add(item.getQuantity()));
+                }
             });
+
+            saleInput.getItems().forEach(itemInput -> {
+                var produtoDaVenda = saleEdit.getItems().stream().filter(i -> i.getProduct().getId().equals(itemInput.getProduct().getId())).findFirst();
+                var product = registerProductService.findProductById(itemInput.getProduct().getId());
+
+                if (produtoDaVenda.isPresent()) {
+                    if (produtoDaVenda.get().getQuantity().compareTo(itemInput.getQuantity()) < 0) {
+                        var calculateStock = produtoDaVenda.get().getQuantity().subtract(itemInput.getQuantity());
+                        product.setQuantity(product.getQuantity().add(calculateStock));
+                    } else if (produtoDaVenda.get().getQuantity().compareTo(itemInput.getQuantity()) > 0) {
+                        var calculateStock = produtoDaVenda.get().getQuantity().subtract(itemInput.getQuantity());
+                        product.setQuantity(product.getQuantity().add(calculateStock));
+                    } else {
+                        product.setQuantity(product.getQuantity().subtract(itemInput.getQuantity()));
+                    }
+                } else {
+                    product.setQuantity(product.getQuantity().subtract(itemInput.getQuantity()));
+                }
+            });
+            saleEdit.setStatus(StatusSale.EMITIDA);
         }
+
         var saleDomain = saleModelDisassembler.toDomainObject(saleInput);
 
         saleEdit.getItems().clear();
         saleEdit.getItems().addAll(saleDomain.getItems());
         saleEdit.prePersist();
 
-        return saleModelAssembler.toModel(saleRepository.save(saleEdit));
+        saleRepository.save(saleEdit);
+        return null;
     }
 
     public void cancel(String saleCode) {

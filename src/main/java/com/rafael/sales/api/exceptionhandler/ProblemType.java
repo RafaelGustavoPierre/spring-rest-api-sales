@@ -7,6 +7,7 @@ import lombok.Getter;
 @Getter
 public enum ProblemType {
 
+    ENTITY_CONFLICT("/conflito-de-entidades", "Conflito de entidades"),
     INSUFFICIENT_STOCK("/estoque-insuficiente", "Estoque insuficiente"),
     RESOURCE_NOT_FOUND("/recurso-nao-encontrado", "Recurso não encontrado"),
     MEDIA_TYPE_NOT_SUPPORTED("/midia-nao-suportada", "Formato Inválido"),

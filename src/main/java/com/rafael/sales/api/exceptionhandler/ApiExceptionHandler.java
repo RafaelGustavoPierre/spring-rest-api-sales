@@ -3,10 +3,7 @@ package com.rafael.sales.api.exceptionhandler;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.fasterxml.jackson.databind.exc.PropertyBindingException;
-import com.rafael.sales.domain.exception.BusinessException;
-import com.rafael.sales.domain.exception.EntityInUseException;
-import com.rafael.sales.domain.exception.EntityNotFoundException;
-import com.rafael.sales.domain.exception.InsufficientStockException;
+import com.rafael.sales.domain.exception.*;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.hibernate.validator.internal.properties.Field;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,6 +74,17 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
     public ResponseEntity<?> handleBusinessException(BusinessException ex, WebRequest request) {
         HttpStatus status = HttpStatus.NOT_FOUND;
         ProblemType problemType = ProblemType.RESOURCE_NOT_FOUND;
+        String detail = ex.getMessage();
+
+        Problem problem = createProblemBuilder(status, problemType, detail).build();
+
+        return handleExceptionInternal(ex, problem, new HttpHeaders(), status, request);
+    }
+
+    @ExceptionHandler(EntityConflictException.class)
+    public ResponseEntity<?> handleEntityConflictException(EntityConflictException ex, WebRequest request) {
+        HttpStatus status = HttpStatus.CONFLICT;
+        ProblemType problemType = ProblemType.ENTITY_CONFLICT;
         String detail = ex.getMessage();
 
         Problem problem = createProblemBuilder(status, problemType, detail).build();
