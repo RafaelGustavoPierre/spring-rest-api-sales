@@ -7,7 +7,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class SaleUser {
+public class SaleUserInput {
 
     @OneToOne
     @NotNull

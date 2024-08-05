@@ -1,9 +1,13 @@
 package com.rafael.sales.domain.service;
 
+import com.rafael.sales.api.assembler.ProductModelAssembler;
 import com.rafael.sales.api.assembler.SaleModelAssembler;
 import com.rafael.sales.api.assembler.SaleModelDisassembler;
+import com.rafael.sales.api.model.SaleItemModel;
 import com.rafael.sales.api.model.SaleModel;
+import com.rafael.sales.api.model.SaleProductModel;
 import com.rafael.sales.api.model.input.SaleInput;
+import com.rafael.sales.api.model.input.SaleProductInput;
 import com.rafael.sales.domain.exception.*;
 import com.rafael.sales.domain.model.*;
 import com.rafael.sales.domain.repository.ProductRepository;
@@ -37,6 +41,7 @@ public class RegisterSaleService {
 
     private SaleModelAssembler saleModelAssembler;
     private SaleModelDisassembler saleModelDisassembler;
+    private ProductModelAssembler productModelAssembler;
 
     public Sale findSale(String saleCode) {
         return saleRepository.findByCode(saleCode).orElseThrow(() -> new BusinessException(String.format(SALE_NOT_FOUND, saleCode)));
@@ -51,25 +56,27 @@ public class RegisterSaleService {
         saleInput.setDateRegister(OffsetDateTime.now());
 
         List<Product> productList = new ArrayList<>();
-        if (saleInput.getStatus() == StatusSale.EMITIR) {
             saleInput.getItems().forEach(itemSale -> {
                 if (itemSale.getProduct().getId() == null)
                     throw new EntityNotFoundException(PRODUCT_NOT_FOUND);
 
                 Product product = registerProductService.findProductById(itemSale.getProduct().getId());
+                itemSale.getProduct().setName(product.getName());
 
                 if (product.getQuantity().compareTo(itemSale.getQuantity()) < 1) {
                     throw new InsufficientStockException(String.format(INSUFFICIENT_STOCK, product.getName(), product.getQuantity()));
                 }
 
-                product.setQuantity(product.getQuantity().subtract(itemSale.getQuantity()));
+                if (saleInput.getStatus() == StatusSale.EMITIR) {
+                    product.setQuantity(product.getQuantity().subtract(itemSale.getQuantity()));
+                }
                 productList.add(product);
             });
-            productRepository.saveAll(productList);
-        }
+        productRepository.saveAll(productList);
 
         Sale sale = saleRepository.save(saleModelDisassembler.toDomainObject(saleInput));
         return saleModelAssembler.toModel(sale);
+//        return null;
     }
 
     @Transactional
@@ -89,7 +96,7 @@ public class RegisterSaleService {
 
                 if (productRemove.isEmpty()) {
                     Product product = registerProductService.findProductById(item.getProduct().getId());
-                    product.setQuantity(product.getQuantity().add(item.getQuantity()));
+                    saleInput.getItems().remove(product);
                 }
             });
 
@@ -120,8 +127,7 @@ public class RegisterSaleService {
         saleEdit.getItems().addAll(saleDomain.getItems());
         saleEdit.prePersist();
 
-        saleRepository.save(saleEdit);
-        return null;
+        return saleModelAssembler.toModel(saleRepository.save(saleEdit));
     }
 
     public void cancel(String saleCode) {

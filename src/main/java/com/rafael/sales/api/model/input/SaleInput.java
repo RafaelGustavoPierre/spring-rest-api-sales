@@ -40,7 +40,7 @@ public class SaleInput {
     @OneToOne
     @JoinColumn(name = "id_user")
     @NotNull
-    private SaleUser user;
+    private SaleUserInput user;
 
     @PrePersist
     @PreUpdate
