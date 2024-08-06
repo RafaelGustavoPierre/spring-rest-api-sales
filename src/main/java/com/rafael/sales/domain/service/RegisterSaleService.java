@@ -1,17 +1,16 @@
 package com.rafael.sales.domain.service;
 
-import com.rafael.sales.api.assembler.ProductModelAssembler;
 import com.rafael.sales.api.assembler.SaleModelAssembler;
 import com.rafael.sales.api.assembler.SaleModelDisassembler;
-import com.rafael.sales.api.model.SaleItemModel;
 import com.rafael.sales.api.model.SaleModel;
-import com.rafael.sales.api.model.SaleProductModel;
 import com.rafael.sales.api.model.input.SaleInput;
-import com.rafael.sales.api.model.input.SaleProductInput;
+import com.rafael.sales.domain.service.SendEmailService.Message;
 import com.rafael.sales.domain.exception.*;
 import com.rafael.sales.domain.model.*;
 import com.rafael.sales.domain.repository.ProductRepository;
 import com.rafael.sales.domain.repository.SaleRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,7 +40,8 @@ public class RegisterSaleService {
 
     private SaleModelAssembler saleModelAssembler;
     private SaleModelDisassembler saleModelDisassembler;
-    private ProductModelAssembler productModelAssembler;
+
+    private SendEmailService emailService;
 
     public Sale findSale(String saleCode) {
         return saleRepository.findByCode(saleCode).orElseThrow(() -> new BusinessException(String.format(SALE_NOT_FOUND, saleCode)));
@@ -69,14 +69,15 @@ public class RegisterSaleService {
 
                 if (saleInput.getStatus() == StatusSale.EMITIR) {
                     product.setQuantity(product.getQuantity().subtract(itemSale.getQuantity()));
+                    saleInput.setStatus(StatusSale.EMITIDA);
                 }
                 productList.add(product);
             });
         productRepository.saveAll(productList);
 
-        Sale sale = saleRepository.save(saleModelDisassembler.toDomainObject(saleInput));
+        var sale = saleRepository.save(saleModelDisassembler.toDomainObject(saleInput));
+
         return saleModelAssembler.toModel(sale);
-//        return null;
     }
 
     @Transactional

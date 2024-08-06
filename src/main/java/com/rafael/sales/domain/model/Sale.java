@@ -41,7 +41,7 @@ public class Sale {
     private List<ProductSale> items;
 
     @Valid
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_user")
     private User user;
 

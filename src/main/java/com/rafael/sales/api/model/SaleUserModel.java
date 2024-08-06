@@ -8,5 +8,7 @@ import lombok.Setter;
 public class SaleUserModel {
 
     private Long id;
+    private String name;
+    private String email;
 
 }
