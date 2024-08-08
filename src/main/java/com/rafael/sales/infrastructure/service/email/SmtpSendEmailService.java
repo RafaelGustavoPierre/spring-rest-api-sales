@@ -6,20 +6,20 @@ import com.rafael.sales.domain.service.SendEmailService;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import jakarta.mail.internet.MimeMessage;
-import lombok.AllArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.stereotype.Service;
 import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 
-import java.io.IOException;
-
-@Service
-@AllArgsConstructor
 public class SmtpSendEmailService implements SendEmailService {
 
+    @Autowired
     private JavaMailSender mailSender;
+
+    @Autowired
     private EmailProperties emailProperties;
+
+    @Autowired
     private Configuration freemarkerConfig;
 
     @Override
@@ -41,7 +41,7 @@ public class SmtpSendEmailService implements SendEmailService {
         }
     }
 
-    private String processorModel(Message message) {
+    protected String processorModel(Message message) {
         try {
             Template template = freemarkerConfig.getTemplate(message.getBody());
 

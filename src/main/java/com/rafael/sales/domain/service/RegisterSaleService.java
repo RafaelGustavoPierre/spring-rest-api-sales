@@ -87,17 +87,7 @@ public class RegisterSaleService {
         return saleModelAssembler.toModel(sale);
     }
 
-    private void mailSending(Sale sale) {
-        String subject = String.format("%s - Venda", sale.getUser().getName());
 
-        Message message = Message.builder()
-                        .receiver(sale.getUser().getEmail())
-                        .subject(subject)
-                        .body("sale-emitida.html")
-                        .variable("sale", sale)
-                        .build();
-        emailService.send(message);
-    }
 
     @Transactional
     public SaleModel edit(String saleCode, SaleInput saleInput) {
@@ -147,7 +137,25 @@ public class RegisterSaleService {
         saleEdit.getItems().addAll(saleDomain.getItems());
         saleEdit.prePersist();
 
-        return saleModelAssembler.toModel(saleRepository.save(saleEdit));
+        Sale sale = saleRepository.save(saleEdit);
+
+        if (sale.getStatus().equals(StatusSale.EMITIDA)) {
+            mailSending(sale);
+        }
+
+        return saleModelAssembler.toModel(sale);
+    }
+
+    private void mailSending(Sale sale) {
+        String subject = String.format("%s - Venda", sale.getUser().getName());
+
+        Message message = Message.builder()
+                .receiver(sale.getUser().getEmail())
+                .subject(subject)
+                .body("sale-emitida.html")
+                .variable("sale", sale)
+                .build();
+        emailService.send(message);
     }
 
     public void cancel(String saleCode) {
