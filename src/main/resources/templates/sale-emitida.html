@@ -1,0 +1,22 @@
+<html>
+<body style="font: 14px Arial, Helvetica, sans-serif">
+<h1 style="color: red; font-size: 26px">Compra feita com sucesso!</h1>
+
+<p>${sale.user.name}, obrigado por comprar conosco, volte sempre.</p>
+
+<h2 style="font-size: 20px">${sale.description}</h2>
+
+<table width="100%" border="0" cellspacing="0" cellpadding="0"
+       style="max-width: 400px; color: #6F6F6F">
+    <#list sale.items as item>
+        <tr>
+            <td style="padding: 10px 0">${item.quantity}x ${item.product.name}</td>
+            <td style="width: 30px">${item.price}</td>
+        </tr>
+    </#list>
+</table>
+
+<h2 style="font-size: 20px">Código da Venda</h2>
+<p style="color: #6F6F6F">${sale.code}</p>
+</body>
+</html>

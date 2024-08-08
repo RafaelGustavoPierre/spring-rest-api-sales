@@ -43,6 +43,9 @@ public class RegisterSaleService {
 
     private SendEmailService emailService;
 
+    @PersistenceContext
+    private EntityManager entityManager;
+
     public Sale findSale(String saleCode) {
         return saleRepository.findByCode(saleCode).orElseThrow(() -> new BusinessException(String.format(SALE_NOT_FOUND, saleCode)));
     }
@@ -76,8 +79,24 @@ public class RegisterSaleService {
         productRepository.saveAll(productList);
 
         var sale = saleRepository.save(saleModelDisassembler.toDomainObject(saleInput));
+        entityManager.refresh(sale);
 
+        if (sale.getStatus().equals(StatusSale.EMITIDA)) {
+            mailSending(sale);
+        }
         return saleModelAssembler.toModel(sale);
+    }
+
+    private void mailSending(Sale sale) {
+        String subject = String.format("%s - Venda", sale.getUser().getName());
+
+        Message message = Message.builder()
+                        .receiver(sale.getUser().getEmail())
+                        .subject(subject)
+                        .body("sale-emitida.html")
+                        .variable("sale", sale)
+                        .build();
+        emailService.send(message);
     }
 
     @Transactional
