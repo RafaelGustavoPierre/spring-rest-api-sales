@@ -1,5 +1,6 @@
 package com.rafael.sales.domain.model;
 
+import com.rafael.sales.domain.event.SendEmailEvent;
 import jakarta.persistence.*;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -7,7 +8,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
+import org.springframework.data.domain.AbstractAggregateRoot;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -15,9 +16,9 @@ import java.util.UUID;
 
 @Getter
 @Setter
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 @Entity
-public class Sale {
+public class Sale extends AbstractAggregateRoot<Sale> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -54,6 +55,12 @@ public class Sale {
 
         if (this.code == null) {
             setCode(UUID.randomUUID().toString());
+        }
+    }
+
+    public void mailEvent() {
+        if (this.getStatus().equals(StatusSale.EMITIDA)) {
+            registerEvent(new SendEmailEvent(this));
         }
     }
 

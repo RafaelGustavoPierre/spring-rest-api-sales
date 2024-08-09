@@ -49,7 +49,6 @@ public class SmtpSendEmailService implements SendEmailService {
         } catch (Exception e) {
             throw new EmailException("Não foi possivel montar o template do email",e);
         }
-
     }
 
 }

@@ -81,9 +81,8 @@ public class RegisterSaleService {
         var sale = saleRepository.save(saleModelDisassembler.toDomainObject(saleInput));
         entityManager.refresh(sale);
 
-        if (sale.getStatus().equals(StatusSale.EMITIDA)) {
-            mailSending(sale);
-        }
+        sale.mailEvent();
+
         return saleModelAssembler.toModel(sale);
     }
 
@@ -137,25 +136,10 @@ public class RegisterSaleService {
         saleEdit.getItems().addAll(saleDomain.getItems());
         saleEdit.prePersist();
 
-        Sale sale = saleRepository.save(saleEdit);
-
-        if (sale.getStatus().equals(StatusSale.EMITIDA)) {
-            mailSending(sale);
-        }
+        var sale = saleRepository.save(saleEdit);
+        sale.mailEvent();
 
         return saleModelAssembler.toModel(sale);
-    }
-
-    private void mailSending(Sale sale) {
-        String subject = String.format("%s - Venda", sale.getUser().getName());
-
-        Message message = Message.builder()
-                .receiver(sale.getUser().getEmail())
-                .subject(subject)
-                .body("sale-emitida.html")
-                .variable("sale", sale)
-                .build();
-        emailService.send(message);
     }
 
     public void cancel(String saleCode) {
