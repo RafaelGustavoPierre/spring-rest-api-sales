@@ -18,7 +18,7 @@ import java.util.UUID;
 @Setter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 @Entity
-public class Sale extends AbstractAggregateRoot<Sale> {
+public class Sale {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -59,9 +59,7 @@ public class Sale extends AbstractAggregateRoot<Sale> {
     }
 
     public void mailEvent() {
-        if (this.getStatus().equals(StatusSale.EMITIDA)) {
-            registerEvent(new SendEmailEvent(this));
-        }
+
     }
 
 }

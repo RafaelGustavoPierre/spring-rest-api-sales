@@ -4,6 +4,7 @@ import com.rafael.sales.api.assembler.SaleModelAssembler;
 import com.rafael.sales.api.assembler.SaleModelDisassembler;
 import com.rafael.sales.api.model.SaleModel;
 import com.rafael.sales.api.model.input.SaleInput;
+import com.rafael.sales.domain.event.SendEmailEvent;
 import com.rafael.sales.domain.service.SendEmailService.Message;
 import com.rafael.sales.domain.exception.*;
 import com.rafael.sales.domain.model.*;
@@ -12,6 +13,7 @@ import com.rafael.sales.domain.repository.SaleRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.AllArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,7 +43,7 @@ public class RegisterSaleService {
     private SaleModelAssembler saleModelAssembler;
     private SaleModelDisassembler saleModelDisassembler;
 
-    private SendEmailService emailService;
+    private ApplicationEventPublisher eventPublisher;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -81,12 +83,12 @@ public class RegisterSaleService {
         var sale = saleRepository.save(saleModelDisassembler.toDomainObject(saleInput));
         entityManager.refresh(sale);
 
-        sale.mailEvent();
+        if (sale.getStatus().equals(StatusSale.EMITIDA)) {
+            eventPublisher.publishEvent(new SendEmailEvent(sale));
+        }
 
         return saleModelAssembler.toModel(sale);
     }
-
-
 
     @Transactional
     public SaleModel edit(String saleCode, SaleInput saleInput) {
@@ -137,7 +139,10 @@ public class RegisterSaleService {
         saleEdit.prePersist();
 
         var sale = saleRepository.save(saleEdit);
-        sale.mailEvent();
+
+        if (sale.getStatus().equals(StatusSale.EMITIDA)) {
+            eventPublisher.publishEvent(new SendEmailEvent(sale));
+        }
 
         return saleModelAssembler.toModel(sale);
     }
