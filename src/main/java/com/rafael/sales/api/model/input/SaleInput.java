@@ -5,7 +5,6 @@ import jakarta.persistence.*;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -14,13 +13,7 @@ import java.util.List;
 
 @Getter
 @Setter
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class SaleInput {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @EqualsAndHashCode.Include
-    private Long id;
 
     @NotBlank
     private String description;
@@ -37,8 +30,6 @@ public class SaleInput {
     private List<SaleProductInput> items;
 
     @Valid
-    @OneToOne
-    @JoinColumn(name = "id_user")
     @NotNull
     private SaleUserInput user;
 

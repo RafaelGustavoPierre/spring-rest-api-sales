@@ -5,12 +5,10 @@ import com.rafael.sales.api.assembler.ProductModelDisassembler;
 import com.rafael.sales.api.model.ProductModel;
 import com.rafael.sales.api.model.input.ProductInput;
 import com.rafael.sales.domain.model.Product;
-import com.rafael.sales.domain.model.ProductMedia;
 import com.rafael.sales.domain.repository.ProductMediaRepository;
 import com.rafael.sales.domain.repository.ProductRepository;
 import com.rafael.sales.domain.service.RegisterProductMediaService;
 import com.rafael.sales.domain.service.RegisterProductService;
-import com.rafael.sales.domain.service.StorageService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -21,7 +19,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
 
 @AllArgsConstructor
 @RestController
@@ -32,7 +29,6 @@ public class ProductController {
     private final RegisterProductMediaService registerProductMediaService;
 
     private final ProductRepository productRepository;
-    private final ProductMediaRepository productMediaRepository;
 
     private final ProductModelAssembler productModelAssembler;
     private final ProductModelDisassembler productModelDisassembler;

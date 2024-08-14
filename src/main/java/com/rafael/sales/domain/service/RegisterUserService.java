@@ -1,6 +1,5 @@
 package com.rafael.sales.domain.service;
 
-import com.rafael.sales.api.model.UserModel;
 import com.rafael.sales.domain.exception.EntityNotFoundException;
 import com.rafael.sales.domain.model.User;
 import com.rafael.sales.domain.repository.UserRepository;

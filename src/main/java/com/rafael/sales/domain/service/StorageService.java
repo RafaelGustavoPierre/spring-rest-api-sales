@@ -1,6 +1,5 @@
 package com.rafael.sales.domain.service;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 

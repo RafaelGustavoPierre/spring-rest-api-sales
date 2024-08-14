@@ -5,7 +5,6 @@ import com.rafael.sales.api.assembler.SaleModelDisassembler;
 import com.rafael.sales.api.model.SaleModel;
 import com.rafael.sales.api.model.input.SaleInput;
 import com.rafael.sales.domain.event.SendEmailEvent;
-import com.rafael.sales.domain.service.SendEmailService.Message;
 import com.rafael.sales.domain.exception.*;
 import com.rafael.sales.domain.model.*;
 import com.rafael.sales.domain.repository.ProductRepository;

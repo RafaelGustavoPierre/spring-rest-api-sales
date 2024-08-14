@@ -1,7 +1,5 @@
 package com.rafael.sales.api.exceptionhandler;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.Builder;
 import lombok.Getter;
 
 @Getter

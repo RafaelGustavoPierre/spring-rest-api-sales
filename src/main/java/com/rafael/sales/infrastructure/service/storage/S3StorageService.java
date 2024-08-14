@@ -8,12 +8,8 @@ import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.rafael.sales.core.storage.StorageProperties;
 import com.rafael.sales.domain.exception.StorageException;
 import com.rafael.sales.domain.service.StorageService;
-import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cglib.core.ClassLoaderAwareGeneratorStrategy;
-import org.springframework.stereotype.Service;
 
-import java.io.InputStream;
 import java.net.URL;
 
 public class S3StorageService implements StorageService {

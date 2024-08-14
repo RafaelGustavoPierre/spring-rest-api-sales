@@ -2,10 +2,7 @@ package com.rafael.sales.domain.repository;
 
 import com.rafael.sales.domain.model.ProductSale;
 import com.rafael.sales.domain.model.Sale;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
