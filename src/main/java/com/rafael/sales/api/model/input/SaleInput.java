@@ -31,7 +31,7 @@ public class SaleInput {
 
     @Valid
     @NotNull
-    private SaleUserInput user;
+    private SaleClientInput client;
 
     @PrePersist
     @PreUpdate

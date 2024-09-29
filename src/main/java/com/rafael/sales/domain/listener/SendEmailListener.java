@@ -18,10 +18,10 @@ public class SendEmailListener {
     public void mailSending(SendEmailEvent event) {
         Sale sale = event.getSale();
 
-        String subject = String.format("%s - Venda", sale.getUser().getName());
+        String subject = String.format("%s - Venda", sale.getClient().getName());
 
         SendEmailService.Message message = SendEmailService.Message.builder()
-                .receiver(sale.getUser().getEmail())
+                .receiver(sale.getClient().getEmail())
                 .subject(subject)
                 .body("sale-emitida.html")
                 .variable("sale", sale)

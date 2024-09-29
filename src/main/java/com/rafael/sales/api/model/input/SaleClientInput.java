@@ -6,7 +6,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class SaleUserInput {
+public class SaleClientInput {
 
     @NotNull
     private Long id;

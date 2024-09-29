@@ -33,8 +33,8 @@ public class Sale {
     private List<ProductSale> items;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "id_user")
-    private User user;
+    @JoinColumn(name = "id_client")
+    private Client client;
 
     @PrePersist
     @PreUpdate

@@ -38,6 +38,7 @@ public class RegisterSaleService {
     private final ProductRepository productRepository;
 
     private final RegisterProductService registerProductService;
+    private final RegisterClientService registerClientService;
 
     private SaleModelAssembler saleModelAssembler;
     private SaleModelDisassembler saleModelDisassembler;
@@ -79,6 +80,7 @@ public class RegisterSaleService {
             });
         productRepository.saveAll(productList);
 
+        registerClientService.clientExists(saleInput.getClient().getId());
         var sale = saleRepository.save(saleModelDisassembler.toDomainObject(saleInput));
         entityManager.refresh(sale);
 
