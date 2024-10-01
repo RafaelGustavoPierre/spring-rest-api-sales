@@ -33,6 +33,10 @@ public class SaleInput {
     @NotNull
     private SaleClientInput client;
 
+    @Valid
+    @NotNull
+    private SaleSellerInput seller;
+
     @PrePersist
     @PreUpdate
     public void prePersist() {

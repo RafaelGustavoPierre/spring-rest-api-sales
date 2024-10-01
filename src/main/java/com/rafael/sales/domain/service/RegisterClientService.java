@@ -10,10 +10,10 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 public class RegisterClientService {
 
-    public static final String CLIENT_NOT_FOUND = "Usuario de código %s não foi encontrado";
+    public static final String CLIENT_NOT_FOUND = "Usuario de email %s não foi encontrado";
     private ClientRepository clientRepository;
 
-    public Client clientExists(Long clientId) {
+    public Client findClientById(Long clientId) {
         return clientRepository.findById(clientId).orElseThrow(() -> new EntityNotFoundException(String.format(CLIENT_NOT_FOUND, clientId)));
     }
 

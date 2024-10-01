@@ -9,6 +9,7 @@ import com.rafael.sales.domain.exception.*;
 import com.rafael.sales.domain.model.*;
 import com.rafael.sales.domain.repository.ProductRepository;
 import com.rafael.sales.domain.repository.SaleRepository;
+import com.rafael.sales.domain.repository.SellerRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.AllArgsConstructor;
@@ -39,6 +40,7 @@ public class RegisterSaleService {
 
     private final RegisterProductService registerProductService;
     private final RegisterClientService registerClientService;
+    private final RegisterSellerService registerSellerService;
 
     private SaleModelAssembler saleModelAssembler;
     private SaleModelDisassembler saleModelDisassembler;
@@ -80,8 +82,10 @@ public class RegisterSaleService {
             });
         productRepository.saveAll(productList);
 
-        registerClientService.clientExists(saleInput.getClient().getId());
+        Client client = registerClientService.findClientById(saleInput.getClient().getId());
+
         var sale = saleRepository.save(saleModelDisassembler.toDomainObject(saleInput));
+        sale.setClient(client);
         entityManager.refresh(sale);
 
         if (sale.getStatus().equals(StatusSale.EMITIDA)) {
@@ -100,7 +104,6 @@ public class RegisterSaleService {
         } else if (saleEdit.getStatus().equals(StatusSale.CANCELED)) {
             throw new EntityConflictException(String.format(SALE_CANCELED, saleCode));
         }
-
 
         if (saleInput.getStatus().equals(StatusSale.EMITIR)) {
             saleEdit.getItems().forEach(item -> {
@@ -138,6 +141,16 @@ public class RegisterSaleService {
         saleEdit.getItems().clear();
         saleEdit.getItems().addAll(saleDomain.getItems());
         saleEdit.prePersist();
+
+        if (!saleInput.getSeller().getId().equals(saleEdit.getSeller().getId())) {
+            Seller seller = registerSellerService.findSellerById(saleInput.getSeller().getId());
+            saleEdit.setSeller(seller);
+        }
+
+        if (!saleInput.getClient().getId().equals(saleEdit.getClient().getId())) {
+            Client client = registerClientService.findClientById(saleInput.getClient().getId());
+            saleEdit.setClient(client);
+        }
 
         var sale = saleRepository.save(saleEdit);
 

@@ -11,6 +11,7 @@ import java.util.List;
 @Setter
 public class SaleModel {
 
+    private SaleSellerModel seller;
     private SaleClientModel client;
     private String code;
     private String description;

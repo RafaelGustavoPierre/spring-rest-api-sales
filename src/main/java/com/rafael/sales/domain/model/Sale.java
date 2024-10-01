@@ -36,6 +36,10 @@ public class Sale {
     @JoinColumn(name = "id_client")
     private Client client;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "id_seller")
+    private Seller seller;
+
     @PrePersist
     @PreUpdate
     public void prePersist() {
