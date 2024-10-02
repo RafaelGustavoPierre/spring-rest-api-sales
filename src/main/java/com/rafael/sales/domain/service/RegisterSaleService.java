@@ -82,10 +82,7 @@ public class RegisterSaleService {
             });
         productRepository.saveAll(productList);
 
-        Client client = registerClientService.findClientById(saleInput.getClient().getId());
-
         var sale = saleRepository.save(saleModelDisassembler.toDomainObject(saleInput));
-        sale.setClient(client);
         entityManager.refresh(sale);
 
         if (sale.getStatus().equals(StatusSale.EMITIDA)) {

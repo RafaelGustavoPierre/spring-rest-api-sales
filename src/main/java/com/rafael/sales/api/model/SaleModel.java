@@ -3,13 +3,14 @@ package com.rafael.sales.api.model;
 import com.rafael.sales.domain.model.StatusSale;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.hateoas.RepresentationModel;
 
 import java.time.OffsetDateTime;
 import java.util.List;
 
 @Getter
 @Setter
-public class SaleModel {
+public class SaleModel extends RepresentationModel<SaleModel> {
 
     private SaleSellerModel seller;
     private SaleClientModel client;

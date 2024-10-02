@@ -17,6 +17,7 @@
 		<java.version>21</java.version>
 		<modelmapper.version>2.3.0</modelmapper.version>
 		<aws-s3-version>1.12.759</aws-s3-version>
+		<hateoas.version>3.2.3</hateoas.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -96,6 +97,12 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-freemarker</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-hateoas</artifactId>
+			<version>${hateoas.version}</version>
 		</dependency>
 	</dependencies>
 
