@@ -9,6 +9,9 @@ import com.rafael.sales.domain.service.RegisterSaleService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+
+import org.springframework.hateoas.CollectionModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -26,7 +29,7 @@ public class SaleController {
     private final SaleModelAssembler saleModelAssembler;
 
     @GetMapping
-    public List<SaleModel> list(@RequestParam(required = false) boolean status) {
+    public CollectionModel<SaleModel> list(@RequestParam(required = false) boolean status) {
         List<Sale> sale = null;
 
         if (status == false) {
@@ -41,13 +44,7 @@ public class SaleController {
     @GetMapping("/{saleCode}")
     @ResponseStatus(HttpStatus.OK)
     public SaleModel find(@PathVariable String saleCode) {
-        SaleModel saleModel = saleModelAssembler.toModel(registerSaleService.findSale(saleCode));
-//        saleModel.add(Link.of("http://localhost:8080/sales/"+ saleCode));
-
-        saleModel.add(linkTo(SaleController.class)
-                .slash(saleModel.getCode()).withSelfRel());
-
-        return saleModel;
+        return saleModelAssembler.toModel(registerSaleService.findSale(saleCode));
     }
 
     @PostMapping
