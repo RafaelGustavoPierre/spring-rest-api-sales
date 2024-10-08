@@ -11,7 +11,12 @@ import lombok.AllArgsConstructor;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -28,17 +33,13 @@ public class SaleController {
 
     private final SaleModelAssembler saleModelAssembler;
 
+    private final PagedResourcesAssembler<Sale> pagedResourcesAssembler;
+
     @GetMapping
-    public CollectionModel<SaleModel> list(@RequestParam(required = false) boolean status) {
-        List<Sale> sale = null;
+    public PagedModel<SaleModel> list(@PageableDefault(size = 2) Pageable pageable) {
+        Page<Sale> salePage = saleRepository.findAll(pageable);
 
-        if (status == false) {
-            sale = saleRepository.findEmitidos();
-        } else {
-            sale = saleRepository.findAll();
-        }
-
-        return saleModelAssembler.toCollectionModel(sale);
+        return pagedResourcesAssembler.toModel(salePage, saleModelAssembler);
     }
 
     @GetMapping("/{saleCode}")

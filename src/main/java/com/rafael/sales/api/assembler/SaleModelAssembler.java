@@ -28,7 +28,7 @@ public class SaleModelAssembler
     @Override
     public SaleModel toModel(Sale sale) {
         SaleModel saleModel = createModelWithId(sale.getCode(), sale);
-        
+
         modelMapper.map(sale, saleModel);
 
         saleModel.getItems().forEach(saleItemModel -> {
