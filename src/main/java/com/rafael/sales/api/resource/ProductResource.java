@@ -1,11 +1,10 @@
-package com.rafael.sales.api.controller;
+package com.rafael.sales.api.resource;
 
 import com.rafael.sales.api.assembler.ProductModelAssembler;
 import com.rafael.sales.api.assembler.ProductModelDisassembler;
 import com.rafael.sales.api.model.ProductModel;
 import com.rafael.sales.api.model.input.ProductInput;
 import com.rafael.sales.domain.model.Product;
-import com.rafael.sales.domain.repository.ProductMediaRepository;
 import com.rafael.sales.domain.repository.ProductRepository;
 import com.rafael.sales.domain.service.RegisterProductMediaService;
 import com.rafael.sales.domain.service.RegisterProductService;
@@ -23,7 +22,7 @@ import java.util.List;
 @AllArgsConstructor
 @RestController
 @RequestMapping("/products")
-public class ProductController {
+public class ProductResource {
 
     private final RegisterProductService registerProductService;
     private final RegisterProductMediaService registerProductMediaService;
