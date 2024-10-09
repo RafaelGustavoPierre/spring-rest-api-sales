@@ -5,7 +5,6 @@ import com.rafael.sales.api.resource.SaleResource;
 import com.rafael.sales.api.model.SaleModel;
 import com.rafael.sales.domain.model.Sale;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
 import org.springframework.stereotype.Component;
@@ -16,11 +15,11 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 public class SaleModelAssembler
         extends RepresentationModelAssemblerSupport<Sale, SaleModel> {
 
-    @Autowired
     private ModelMapper modelMapper;
 
-    public SaleModelAssembler() {
+    public SaleModelAssembler(ModelMapper modelMapper) {
         super(SaleResource.class, SaleModel.class);
+        this.modelMapper = modelMapper;
     }
 
     @Override

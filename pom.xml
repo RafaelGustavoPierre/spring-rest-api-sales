@@ -18,6 +18,8 @@
 		<modelmapper.version>2.3.0</modelmapper.version>
 		<aws-s3-version>1.12.759</aws-s3-version>
 		<hateoas.version>3.2.3</hateoas.version>
+		<spring-security-oauth2.version>2.5.2.RELEASE</spring-security-oauth2.version>
+		<spring-authorization-server.version>1.0.11.RELEASE</spring-authorization-server.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -67,10 +69,10 @@
 			<scope>test</scope>
 		</dependency>
 
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-security</artifactId>
-		</dependency>
+<!--		<dependency>-->
+<!--			<groupId>org.springframework.boot</groupId>-->
+<!--			<artifactId>spring-boot-starter-security</artifactId>-->
+<!--		</dependency>-->
 
 		<dependency>
 			<groupId>org.apache.commons</groupId>
@@ -104,6 +106,13 @@
 			<artifactId>spring-boot-starter-hateoas</artifactId>
 			<version>${hateoas.version}</version>
 		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.security.oauth</groupId>
+			<artifactId>spring-security-oauth2</artifactId>
+			<version>${spring-security-oauth2.version}</version>
+		</dependency>
+
 	</dependencies>
 
 	<build>

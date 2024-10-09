@@ -8,7 +8,6 @@ import com.rafael.sales.domain.repository.SaleRepository;
 import com.rafael.sales.domain.service.RegisterSaleService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
