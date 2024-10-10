@@ -18,7 +18,7 @@
 		<modelmapper.version>2.3.0</modelmapper.version>
 		<aws-s3-version>1.12.759</aws-s3-version>
 		<hateoas.version>3.2.3</hateoas.version>
-		<spring-security-oauth2.version>2.5.2.RELEASE</spring-security-oauth2.version>
+		<spring-security-oauth2.version>1.2.6</spring-security-oauth2.version> <!-- Ultima versão antes da 1.3.x-->
 	</properties>
 	<dependencies>
 		<dependency>
@@ -115,7 +115,7 @@
 		<dependency>
 			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-oauth2-authorization-server</artifactId>
-			<version>1.3.2</version>
+			<version>${spring-security-oauth2.version}</version>
 		</dependency>
 
 	</dependencies>
