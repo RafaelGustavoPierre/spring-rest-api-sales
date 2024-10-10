@@ -14,9 +14,12 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import com.rafael.sales.domain.service.StorageService.MediaRecover;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.util.List;
 
 @AllArgsConstructor
@@ -32,6 +35,7 @@ public class ProductResource {
     private final ProductModelAssembler productModelAssembler;
     private final ProductModelDisassembler productModelDisassembler;
 
+    @PreAuthorize("hasAuthority('READ')")
     @GetMapping
     public List<ProductModel> list() {
         return productModelAssembler.toCollectionModel(productRepository.findAll());
