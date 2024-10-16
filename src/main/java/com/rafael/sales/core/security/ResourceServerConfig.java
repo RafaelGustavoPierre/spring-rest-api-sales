@@ -7,10 +7,11 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
-@EnableMethodSecurity(securedEnabled = true)
+@EnableMethodSecurity(prePostEnabled = true)
 @EnableWebSecurity
 public class ResourceServerConfig {
 
@@ -22,8 +23,13 @@ public class ResourceServerConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .oauth2ResourceServer((oauth2) -> oauth2
                         .opaqueToken(Customizer.withDefaults())
+                )
+                .headers(headers -> headers
+                        .httpStrictTransportSecurity(HeadersConfigurer.HstsConfig::disable
+                        )
                 );
         return http.build();
     }
+
 
 }

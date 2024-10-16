@@ -18,8 +18,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
 import java.util.List;
 
 @AllArgsConstructor
@@ -35,7 +33,7 @@ public class ProductResource {
     private final ProductModelAssembler productModelAssembler;
     private final ProductModelDisassembler productModelDisassembler;
 
-    @PreAuthorize("hasAuthority('READ')")
+    @PreAuthorize("hasAuthority('SCOPE_READ')")
     @GetMapping
     public List<ProductModel> list() {
         return productModelAssembler.toCollectionModel(productRepository.findAll());

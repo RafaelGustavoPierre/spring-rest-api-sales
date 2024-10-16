@@ -111,7 +111,6 @@
 			<artifactId>spring-security-oauth2-authorization-server</artifactId>
 			<version>${spring-security-oauth2.version}</version>
 		</dependency>
-
 	</dependencies>
 
 	<build>
