@@ -16,17 +16,17 @@ public class SendEmailListener {
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void mailSending(SendEmailEvent event) {
-        Sale sale = event.getSale();
-
-        String subject = String.format("%s - Venda", sale.getClient().getName());
-
-        SendEmailService.Message message = SendEmailService.Message.builder()
-                .receiver(sale.getClient().getEmail())
-                .subject(subject)
-                .body("sale-emitida.html")
-                .variable("sale", sale)
-                .build();
-        emailService.send(message);
+//        Sale sale = event.getSale();
+//
+//        String subject = String.format("%s - Venda", sale.getClient().getName());
+//
+//        SendEmailService.Message message = SendEmailService.Message.builder()
+//                .receiver(sale.getClient().getEmail())
+//                .subject(subject)
+//                .body("sale-emitida.html")
+//                .variable("sale", sale)
+//                .build();
+//        emailService.send(message);
     }
 
 }

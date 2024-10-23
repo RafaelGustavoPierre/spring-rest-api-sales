@@ -139,15 +139,15 @@ public class RegisterSaleService {
         saleEdit.getItems().addAll(saleDomain.getItems());
         saleEdit.prePersist();
 
-        if (!saleInput.getSeller().getId().equals(saleEdit.getSeller().getId())) {
-            Seller seller = registerSellerService.findSellerById(saleInput.getSeller().getId());
-            saleEdit.setSeller(seller);
-        }
-
-        if (!saleInput.getClient().getId().equals(saleEdit.getClient().getId())) {
-            Client client = registerClientService.findClientById(saleInput.getClient().getId());
-            saleEdit.setClient(client);
-        }
+//        if (!saleInput.getSeller().getId().equals(saleEdit.getSeller().getId())) {
+//            Seller seller = registerSellerService.findSellerById(saleInput.getSeller().getId());
+//            saleEdit.setSeller(seller);
+//        }
+//
+//        if (!saleInput.getClient().getId().equals(saleEdit.getClient().getId())) {
+//            Client client = registerClientService.findClientById(saleInput.getClient().getId());
+//            saleEdit.setClient(client);
+//        }
 
         var sale = saleRepository.save(saleEdit);
 

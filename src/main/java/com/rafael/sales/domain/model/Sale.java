@@ -32,13 +32,13 @@ public class Sale {
     @OneToMany(mappedBy = "sale", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<ProductSale> items;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "id_client")
-    private Client client;
-
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "id_seller")
-    private Seller seller;
+//    @ManyToOne(fetch = FetchType.EAGER)
+//    @JoinColumn(name = "id_client")
+//    private Client client;
+//
+//    @ManyToOne(fetch = FetchType.EAGER)
+//    @JoinColumn(name = "id_seller")
+//    private Seller seller;
 
     @PrePersist
     @PreUpdate
