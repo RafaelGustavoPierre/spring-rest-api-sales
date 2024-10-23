@@ -19,7 +19,7 @@ public @interface CheckSecurity {
 
         @Retention(RUNTIME)
         @Target(METHOD)
-        @PreAuthorize("hasAuthority('SCOPE_WRITE')")
+        @PreAuthorize("hasAuthority('SCOPE_WRITE') and hasAuthority('CAN_WRITE_REQUESTS')")
         public @interface canWrite { }
 
     }

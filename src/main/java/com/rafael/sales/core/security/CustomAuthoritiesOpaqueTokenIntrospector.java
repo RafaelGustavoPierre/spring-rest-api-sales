@@ -22,7 +22,7 @@ public class CustomAuthoritiesOpaqueTokenIntrospector implements OpaqueTokenIntr
     public OAuth2AuthenticatedPrincipal introspect(String token) {
         OAuth2AuthenticatedPrincipal principal = delegate.introspect(token);
         Collection<GrantedAuthority> authorities = extractAuthorities(principal);
-
+        System.out.println("authorities: " + authorities);
 
         return new OAuth2AuthenticatedPrincipal() {
             @Override
@@ -45,10 +45,21 @@ public class CustomAuthoritiesOpaqueTokenIntrospector implements OpaqueTokenIntr
     private Collection<GrantedAuthority> extractAuthorities(OAuth2AuthenticatedPrincipal principal) {
         // Extração personalizada das Authorities, por exemplo, a partir dos escopos (scope)
         List<String> scopes = principal.getAttribute("scope");
+        System.out.println("Principal: " + principal.getAttributes().toString());
 
         return scopes.stream()
-                .map(scope -> new SimpleGrantedAuthority("SCOPE_" + scope))
+                .map(scope -> {
+                    if ("READ".equals(scope) || "WRITE".equals(scope)) {
+                        return new SimpleGrantedAuthority("SCOPE_" + scope);
+                    } else {
+                        return new SimpleGrantedAuthority(scope);
+                    }
+                })
                 .collect(Collectors.toList());
+
+//        return scopes.stream()
+//                .map(scope -> new SimpleGrantedAuthority("SCOPE_" + scope.toUpperCase()))
+//                .collect(Collectors.toList());
     }
 
 }
