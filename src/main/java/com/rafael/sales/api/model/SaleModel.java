@@ -14,8 +14,8 @@ import java.util.List;
 @Setter
 public class SaleModel extends RepresentationModel<SaleModel> {
 
-    private SaleSellerModel seller;
-    private SaleClientModel client;
+//    private SaleSellerModel seller;
+//    private SaleClientModel client;
     private String code;
     private String description;
     private StatusSale status;

@@ -29,13 +29,13 @@ public class SaleInput {
     @OneToMany(mappedBy = "sale", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<SaleProductInput> items;
 
-    @Valid
-    @NotNull
-    private SaleClientInput client;
-
-    @Valid
-    @NotNull
-    private SaleSellerInput seller;
+//    @Valid
+//    @NotNull
+//    private SaleClientInput client;
+//
+//    @Valid
+//    @NotNull
+//    private SaleSellerInput seller;
 
     @PrePersist
     @PreUpdate

@@ -9,7 +9,6 @@ import com.rafael.sales.domain.exception.*;
 import com.rafael.sales.domain.model.*;
 import com.rafael.sales.domain.repository.ProductRepository;
 import com.rafael.sales.domain.repository.SaleRepository;
-import com.rafael.sales.domain.repository.SellerRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.AllArgsConstructor;
@@ -39,8 +38,6 @@ public class RegisterSaleService {
     private final ProductRepository productRepository;
 
     private final RegisterProductService registerProductService;
-    private final RegisterClientService registerClientService;
-    private final RegisterSellerService registerSellerService;
 
     private SaleModelAssembler saleModelAssembler;
     private SaleModelDisassembler saleModelDisassembler;
