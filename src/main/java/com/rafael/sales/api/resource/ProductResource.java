@@ -4,6 +4,7 @@ import com.rafael.sales.api.assembler.ProductModelAssembler;
 import com.rafael.sales.api.assembler.ProductModelDisassembler;
 import com.rafael.sales.api.model.ProductModel;
 import com.rafael.sales.api.model.input.ProductInput;
+import com.rafael.sales.core.security.CheckSecurity;
 import com.rafael.sales.domain.model.Product;
 import com.rafael.sales.domain.repository.ProductRepository;
 import com.rafael.sales.domain.service.RegisterProductMediaService;
@@ -15,6 +16,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import com.rafael.sales.domain.service.StorageService.MediaRecover;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.core.OAuth2AccessToken;
+import org.springframework.security.oauth2.core.OAuth2AuthenticatedPrincipal;
+import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -33,13 +39,14 @@ public class ProductResource {
     private final ProductModelAssembler productModelAssembler;
     private final ProductModelDisassembler productModelDisassembler;
 
-    @PreAuthorize("hasAuthority('SCOPE_READ')")
     @GetMapping
+    @CheckSecurity.Products.canRead
     public List<ProductModel> list() {
         return productModelAssembler.toCollectionModel(productRepository.findAll());
     }
 
     @GetMapping("/{productId}")
+    @CheckSecurity.Products.canRead
     public ResponseEntity<ProductModel> find(@PathVariable Long productId) {
         ProductModel productModel = productModelAssembler.toModel(registerProductService.findProductById(productId));
         String productMediaName = registerProductMediaService.findByProductMedia(productId);
@@ -58,6 +65,7 @@ public class ProductResource {
     }
 
     @PostMapping
+    @CheckSecurity.Products.canWrite
     @ResponseStatus(HttpStatus.CREATED)
     public ProductModel send(@Valid ProductInput productInput) throws IOException {
         Product product = productModelDisassembler.toDomainObject(productInput);
@@ -66,6 +74,7 @@ public class ProductResource {
     }
 
     @PutMapping("/{id}")
+    @CheckSecurity.Products.canWrite
     public ResponseEntity<ProductModel> update(@PathVariable Long id, @Valid ProductInput productInput) throws IOException {
         Product product = registerProductService.findProductById(id);
 
@@ -74,6 +83,7 @@ public class ProductResource {
     }
 
     @DeleteMapping("/{productId}")
+    @CheckSecurity.Products.canWrite
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void exclude(@PathVariable Long productId) {
         registerProductService.exclude(productId);

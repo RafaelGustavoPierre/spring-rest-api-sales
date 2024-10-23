@@ -1,4 +1,4 @@
-package com.rafael.sales.core.security.authorizationserver;
+package com.rafael.sales.core.property;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
@@ -12,7 +12,7 @@ import org.springframework.validation.annotation.Validated;
 @Setter
 @Validated
 @ConfigurationProperties("sales.auth")
-public class SalesSecurityProperties {
+public class AppProperties {
 
     @NotBlank
     private String providerUrl;
