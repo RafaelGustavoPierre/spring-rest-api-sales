@@ -7,6 +7,7 @@ import com.rafael.sales.domain.model.Sale;
 import com.rafael.sales.domain.repository.SaleRepository;
 import com.rafael.sales.domain.service.RegisterSaleService;
 import jakarta.validation.Valid;
+
 import lombok.AllArgsConstructor;
 
 import org.springframework.data.domain.Page;
