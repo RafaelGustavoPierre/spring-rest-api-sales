@@ -15,6 +15,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
@@ -37,6 +39,7 @@ import org.springframework.security.web.SecurityFilterChain;
 
 import java.security.KeyStore;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.HashSet;
 
 @Configuration
@@ -52,6 +55,7 @@ public class AuthorizationServerConfig {
     @Order(Ordered.HIGHEST_PRECEDENCE)
     public SecurityFilterChain authFilterChain(HttpSecurity http) throws Exception {
         OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http);
+        http.formLogin(Customizer.withDefaults());
         return http.build();
     }
 
@@ -71,6 +75,14 @@ public class AuthorizationServerConfig {
                 .build();
 
         return new InMemoryUserDetailsManager(user);
+    }
+
+    @Bean
+    public DaoAuthenticationProvider authenticationProvider(JpaUserDetailsService jpaUserDetailsService) {
+        DaoAuthenticationProvider auth = new DaoAuthenticationProvider();
+        auth.setUserDetailsService(jpaUserDetailsService);
+        auth.setPasswordEncoder(passwordEncoder);
+        return auth;
     }
 
     @Bean
@@ -96,8 +108,9 @@ public class AuthorizationServerConfig {
                 .clientId("testecode")
                 .clientSecret(passwordEncoder.encode("123"))
                 .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
-                .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
+//                .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+//                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
+                .authorizationGrantTypes(types -> types.addAll(Arrays.asList(AuthorizationGrantType.REFRESH_TOKEN, AuthorizationGrantType.AUTHORIZATION_CODE)))
                 .redirectUri("https://oauth.pstmn.io/v1/callback")
                 .scope("READ")
                 .scope("WRITE")
@@ -114,37 +127,6 @@ public class AuthorizationServerConfig {
 
         return new InMemoryRegisteredClientRepository(testeCode);
     }
-
-//    @Bean
-//    public RegisteredClientRepository registeredClientRepository(JdbcOperations jdbcOperations) {
-//        return new JdbcRegisteredClientRepository(jdbcOperations);
-
-//        RegisteredClient teste = RegisteredClient
-//                .withId("2")
-//                .clientId("rafaelgp")
-//                .clientSecret(passwordEncoder.encode("123"))
-//                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
-//                .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
-//                .scope("READ")
-//                .scope("WRITE")
-//                .scope("CAN_WRITE_REQUESTS")
-//                .tokenSettings(TokenSettings.builder()
-//                        .accessTokenFormat(OAuth2TokenFormat.SELF_CONTAINED)
-//                        .accessTokenTimeToLive(Duration.ofMinutes(15))
-//                        .reuseRefreshTokens(false)
-//                        .refreshTokenTimeToLive(Duration.ofDays(1))
-//                        .build())
-//                .redirectUri("http://localhost:8080")
-//                .clientSettings(ClientSettings.builder()
-//                        .requireAuthorizationConsent(true)
-//                        .build())
-//                .build();
-//
-//        JdbcRegisteredClientRepository repository = new JdbcRegisteredClientRepository(jdbcOperations);
-//        repository.save(teste);
-//
-//        return repository;
-//    }
 
     @Bean
     public JWKSource<SecurityContext> jwtSource() throws Exception {

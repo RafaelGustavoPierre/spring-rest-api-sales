@@ -23,7 +23,7 @@ public class ResourceServerConfig {
     public SecurityFilterChain resourceServerFilterChain(HttpSecurity http, OpaqueTokenIntrospector introspector) throws Exception {
         http
                 .authorizeHttpRequests((authz) -> authz
-                        .requestMatchers("/oauth2/authorize", "/login", "/error").permitAll()
+                        .requestMatchers("/oauth2/**", "/login", "/error").permitAll()
                         .anyRequest().authenticated()
                 )
                 .csrf(AbstractHttpConfigurer::disable)
