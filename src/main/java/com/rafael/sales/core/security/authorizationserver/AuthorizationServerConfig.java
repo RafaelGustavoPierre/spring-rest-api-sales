@@ -40,6 +40,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import java.security.KeyStore;
 import java.time.Duration;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 
 @Configuration
@@ -67,53 +68,17 @@ public class AuthorizationServerConfig {
     }
 
     @Bean
-    public InMemoryUserDetailsManager userDetailsService() {
-        UserDetails user = User.builder()  // Apenas para teste; em produção, use um encoder seguro
-                .username("teste")  // Nome de usuário para login
-                .password(passwordEncoder.encode("123"))  // Senha para login
-                .roles("USER")  // Papel do usuário
-                .build();
-
-        return new InMemoryUserDetailsManager(user);
-    }
-
-    @Bean
-    public DaoAuthenticationProvider authenticationProvider(JpaUserDetailsService jpaUserDetailsService) {
-        DaoAuthenticationProvider auth = new DaoAuthenticationProvider();
-        auth.setUserDetailsService(jpaUserDetailsService);
-        auth.setPasswordEncoder(passwordEncoder);
-        return auth;
-    }
-
-    @Bean
     public RegisteredClientRepository registeredClientRepository() {
-        RegisteredClient saleBackend = RegisteredClient
-                .withId("1")
-                .clientId("rafael")
-                .clientSecret(passwordEncoder.encode("123"))
-                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
-                .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
-                .scope("READ")
-                .scope("WRITE")
-                .scope("CAN_WRITE_REQUESTS")
-                .redirectUri("http://localhost:8080")
-                .tokenSettings(TokenSettings.builder()
-                        .accessTokenFormat(OAuth2TokenFormat.SELF_CONTAINED)
-                        .accessTokenTimeToLive(Duration.ofMinutes(30))
-                        .build())
-                .build();
-
         RegisteredClient testeCode = RegisteredClient
                 .withId("2")
                 .clientId("testecode")
                 .clientSecret(passwordEncoder.encode("123"))
                 .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
-//                .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-//                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
                 .authorizationGrantTypes(types -> types.addAll(Arrays.asList(AuthorizationGrantType.REFRESH_TOKEN, AuthorizationGrantType.AUTHORIZATION_CODE)))
                 .redirectUri("https://oauth.pstmn.io/v1/callback")
                 .scope("READ")
                 .scope("WRITE")
+                .scope("CAN_READ_REQUESTS")
                 .tokenSettings(TokenSettings.builder()
                         .accessTokenFormat(OAuth2TokenFormat.SELF_CONTAINED)
                         .accessTokenTimeToLive(Duration.ofMinutes(30))
@@ -125,7 +90,28 @@ public class AuthorizationServerConfig {
                         .build())
                 .build();
 
-        return new InMemoryRegisteredClientRepository(testeCode);
+        RegisteredClient segundoUser = RegisteredClient
+                .withId("2")
+                .clientId("segundouser")
+                .clientSecret(passwordEncoder.encode("123"))
+                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+                .authorizationGrantTypes(types -> types.addAll(Arrays.asList(AuthorizationGrantType.REFRESH_TOKEN, AuthorizationGrantType.AUTHORIZATION_CODE)))
+                .redirectUri("https://oauth.pstmn.io/v1/callback")
+                .scope("READ")
+                .scope("WRITE")
+                .scope("CAN_READ_REQUESTS")
+                .tokenSettings(TokenSettings.builder()
+                        .accessTokenFormat(OAuth2TokenFormat.SELF_CONTAINED)
+                        .accessTokenTimeToLive(Duration.ofMinutes(30))
+                        .refreshTokenTimeToLive(Duration.ofDays(1))
+                        .reuseRefreshTokens(false)
+                        .build())
+                .clientSettings(ClientSettings.builder()
+                        .requireAuthorizationConsent(false)
+                        .build())
+                .build();
+
+        return new InMemoryRegisteredClientRepository(segundoUser);
     }
 
     @Bean
@@ -147,9 +133,8 @@ public class AuthorizationServerConfig {
     public OAuth2TokenCustomizer<JwtEncodingContext> jwtCustomizer() {
         return context -> {
             final var authentication = context.getPrincipal();
-            System.out.println(authentication.toString());
             if (authentication.getPrincipal() instanceof User user) {
-                final var userByEmail = this.userRepository.findByEmail("rafaelrestapi+telasco@gmail.com").orElseThrow(() -> new EntityNotFoundException("user-3"));
+                final var userByEmail = this.userRepository.findByEmail(user.getUsername()).orElseThrow(() -> new EntityNotFoundException("user-3"));
 
                 final var authorities = new HashSet<String>();
 

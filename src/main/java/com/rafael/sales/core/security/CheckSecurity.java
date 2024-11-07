@@ -14,7 +14,7 @@ public @interface CheckSecurity {
 
         @Retention(RUNTIME)
         @Target(METHOD)
-        @PreAuthorize("hasAuthority('SCOPE_READ') and hasAuthority('CAN_WRITE_REQUESTS')")
+        @PreAuthorize("hasAuthority('SCOPE_READ') and hasAuthority('CAN_READ_REQUESTS')")
         public @interface canRead { }
 
         @Retention(RUNTIME)
