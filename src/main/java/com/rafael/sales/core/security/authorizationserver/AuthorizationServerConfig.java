@@ -9,38 +9,48 @@ import com.rafael.sales.core.property.AppProperties;
 
 import com.rafael.sales.domain.exception.EntityNotFoundException;
 import com.rafael.sales.domain.repository.UserRepository;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.http.server.ServletServerHttpResponse;
+import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
+import org.springframework.security.oauth2.core.endpoint.OAuth2AccessTokenResponse;
+import org.springframework.security.oauth2.core.http.converter.OAuth2AccessTokenResponseHttpMessageConverter;
+import org.springframework.security.oauth2.server.authorization.authentication.OAuth2AccessTokenAuthenticationToken;
 import org.springframework.security.oauth2.server.authorization.client.InMemoryRegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
-import org.springframework.security.oauth2.server.authorization.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
+import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
 import org.springframework.security.oauth2.server.authorization.settings.OAuth2TokenFormat;
 import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
 import org.springframework.security.oauth2.server.authorization.token.JwtEncodingContext;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.util.CollectionUtils;
 
+import java.io.IOException;
 import java.security.KeyStore;
 import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 
 @Configuration
@@ -55,8 +65,17 @@ public class AuthorizationServerConfig {
     @Bean
     @Order(Ordered.HIGHEST_PRECEDENCE)
     public SecurityFilterChain authFilterChain(HttpSecurity http) throws Exception {
-        OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http);
-        http.formLogin(Customizer.withDefaults());
+        final var authorizationServerConfigurer = new OAuth2AuthorizationServerConfigurer();
+
+        authorizationServerConfigurer.tokenEndpoint(token -> token.accessTokenResponseHandler(new CustomTokenResponseHandler(this.properties)));
+        final var endpointsMatchers = authorizationServerConfigurer.getEndpointsMatcher();
+
+        System.out.println(endpointsMatchers.toString());
+        http
+                .securityMatcher(endpointsMatchers)
+                .authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated())
+                .csrf(csrf -> csrf.ignoringRequestMatchers(endpointsMatchers))
+                .with(authorizationServerConfigurer, Customizer.withDefaults());
         return http.build();
     }
 
@@ -68,7 +87,7 @@ public class AuthorizationServerConfig {
     }
 
     @Bean
-    public RegisteredClientRepository registeredClientRepository() {
+    public RegisteredClientRepository registeredClientRepository(JdbcOperations jdbcOperations) {
         RegisteredClient testeCode = RegisteredClient
                 .withId("2")
                 .clientId("testecode")
@@ -81,37 +100,16 @@ public class AuthorizationServerConfig {
                 .scope("CAN_READ_REQUESTS")
                 .tokenSettings(TokenSettings.builder()
                         .accessTokenFormat(OAuth2TokenFormat.SELF_CONTAINED)
-                        .accessTokenTimeToLive(Duration.ofMinutes(30))
-                        .refreshTokenTimeToLive(Duration.ofDays(1))
-                        .reuseRefreshTokens(false)
+                        .accessTokenTimeToLive(Duration.ofMinutes(15))
+                        .refreshTokenTimeToLive(Duration.ofHours(24))
+                        .reuseRefreshTokens(true)
                         .build())
                 .clientSettings(ClientSettings.builder()
                         .requireAuthorizationConsent(false)
                         .build())
                 .build();
 
-        RegisteredClient segundoUser = RegisteredClient
-                .withId("2")
-                .clientId("segundouser")
-                .clientSecret(passwordEncoder.encode("123"))
-                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
-                .authorizationGrantTypes(types -> types.addAll(Arrays.asList(AuthorizationGrantType.REFRESH_TOKEN, AuthorizationGrantType.AUTHORIZATION_CODE)))
-                .redirectUri("https://oauth.pstmn.io/v1/callback")
-                .scope("READ")
-                .scope("WRITE")
-                .scope("CAN_READ_REQUESTS")
-                .tokenSettings(TokenSettings.builder()
-                        .accessTokenFormat(OAuth2TokenFormat.SELF_CONTAINED)
-                        .accessTokenTimeToLive(Duration.ofMinutes(30))
-                        .refreshTokenTimeToLive(Duration.ofDays(1))
-                        .reuseRefreshTokens(false)
-                        .build())
-                .clientSettings(ClientSettings.builder()
-                        .requireAuthorizationConsent(false)
-                        .build())
-                .build();
-
-        return new InMemoryRegisteredClientRepository(segundoUser);
+        return new InMemoryRegisteredClientRepository(testeCode);
     }
 
     @Bean
@@ -148,4 +146,53 @@ public class AuthorizationServerConfig {
         };
     }
 
+    static class CustomTokenResponseHandler implements AuthenticationSuccessHandler {
+
+        private final AppProperties properties;
+        private final OAuth2AccessTokenResponseHttpMessageConverter accessTokenResponseHttpConverter = new OAuth2AccessTokenResponseHttpMessageConverter();
+
+        CustomTokenResponseHandler(final AppProperties properties) {
+            this.properties = properties;
+        }
+
+        @Override
+        public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
+            // Token
+            final var accessTokenAuthentication = (OAuth2AccessTokenAuthenticationToken) authentication;
+
+            final var accessToken = accessTokenAuthentication.getAccessToken();
+            final var refreshToken = accessTokenAuthentication.getRefreshToken();
+            final var additionalParameters = accessTokenAuthentication.getAdditionalParameters();
+
+            if (refreshToken != null) {
+                this.addRefreshTokenInTheCookie(refreshToken.getTokenValue(), request, response);
+            }
+
+            final var builder = OAuth2AccessTokenResponse.withToken(accessToken.getTokenValue())
+                    .tokenType(accessToken.getTokenType())
+                    .scopes(accessToken.getScopes());
+
+            if (accessToken.getIssuedAt() != null && accessToken.getExpiresAt() != null) {
+                var exp = ChronoUnit.SECONDS.between(accessToken.getIssuedAt(), accessToken.getExpiresAt());
+                builder.expiresIn(exp);
+            }
+
+            final var otherParams = new HashMap<String, Object>();
+            if (!CollectionUtils.isEmpty(additionalParameters)) otherParams.putAll(additionalParameters);
+            builder.additionalParameters(otherParams);
+
+            final var accessTokenResponse = builder.build();
+            final var httpResponse = new ServletServerHttpResponse(response);
+            this.accessTokenResponseHttpConverter.write(accessTokenResponse, null, httpResponse);
+
+        }
+        private void addRefreshTokenInTheCookie(String refreshToken, HttpServletRequest req, HttpServletResponse resp) {
+            final var refreshTokenCookie = new Cookie("refreshToken", refreshToken);
+            refreshTokenCookie.setHttpOnly(true);
+            refreshTokenCookie.setPath(req.getContextPath() + "/oauth2/token");
+            refreshTokenCookie.setMaxAge(2592000);
+            resp.addCookie(refreshTokenCookie);
+        }
+
+    }
 }
