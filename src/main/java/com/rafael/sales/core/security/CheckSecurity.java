@@ -24,4 +24,18 @@ public @interface CheckSecurity {
 
     }
 
+    public @interface Sales {
+
+        @Retention(RUNTIME)
+        @Target(METHOD)
+        @PreAuthorize("hasAuthority('SCOPE_READ') and hasAuthority('CAN_READ_SALES')")
+        public @interface canRead { }
+
+        @Retention(RUNTIME)
+        @Target(METHOD)
+        @PreAuthorize("hasAuthority('SCOPE_WRITE') and hasAuthority('CAN_WRITE_SALES')")
+        public @interface canWrite { }
+
+    }
+
 }

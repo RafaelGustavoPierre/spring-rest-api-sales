@@ -3,6 +3,7 @@ package com.rafael.sales.api.resource;
 import com.rafael.sales.api.assembler.SaleModelAssembler;
 import com.rafael.sales.api.model.SaleModel;
 import com.rafael.sales.api.model.input.SaleInput;
+import com.rafael.sales.core.security.CheckSecurity;
 import com.rafael.sales.domain.model.Sale;
 import com.rafael.sales.domain.repository.SaleRepository;
 import com.rafael.sales.domain.service.RegisterSaleService;
@@ -32,6 +33,7 @@ public class SaleResource {
     private final PagedResourcesAssembler<Sale> pagedResourcesAssembler;
 
     @GetMapping
+    @CheckSecurity.Sales.canRead
     public PagedModel<SaleModel> list(@PageableDefault(size = 2) Pageable pageable) {
         Page<Sale> salePage = saleRepository.findAll(pageable);
 
@@ -40,17 +42,20 @@ public class SaleResource {
 
     @GetMapping("/{saleCode}")
     @ResponseStatus(HttpStatus.OK)
+    @CheckSecurity.Sales.canRead
     public SaleModel find(@PathVariable String saleCode) {
         return saleModelAssembler.toModel(registerSaleService.findSale(saleCode));
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    @CheckSecurity.Sales.canWrite
     public SaleModel create(@Valid @RequestBody SaleInput saleInput) {
         return registerSaleService.save(saleInput);
     }
 
     @PutMapping("/{saleCode}")
+    @CheckSecurity.Sales.canWrite
     public ResponseEntity<SaleModel> edit(@PathVariable String saleCode, @RequestBody @Valid SaleInput saleInput) {
         if (!saleRepository.existsByCode(saleCode)) {
             return ResponseEntity.notFound().build();
@@ -60,6 +65,7 @@ public class SaleResource {
 
     @DeleteMapping("/{saleCode}")
     @ResponseStatus(HttpStatus.OK)
+    @CheckSecurity.Sales.canWrite
     public void cancel(@PathVariable String saleCode) {
         registerSaleService.cancel(saleCode);
     }

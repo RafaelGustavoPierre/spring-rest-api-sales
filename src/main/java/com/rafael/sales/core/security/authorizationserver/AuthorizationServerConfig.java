@@ -28,6 +28,7 @@ import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.server.authorization.InMemoryOAuth2AuthorizationService;
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationService;
 import org.springframework.security.oauth2.server.authorization.client.InMemoryRegisteredClientRepository;
+import org.springframework.security.oauth2.server.authorization.client.JdbcRegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
@@ -79,29 +80,7 @@ public class AuthorizationServerConfig {
 
     @Bean
     public RegisteredClientRepository registeredClientRepository(JdbcOperations jdbcOperations) {
-        RegisteredClient testeCode = RegisteredClient
-                .withId("2")
-                .clientId("client")
-                .clientSecret(passwordEncoder.encode("secret"))
-                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
-                .authorizationGrantType(new AuthorizationGrantType("custom_password"))
-                .authorizationGrantTypes(types -> types.addAll(Arrays.asList(AuthorizationGrantType.REFRESH_TOKEN, AuthorizationGrantType.AUTHORIZATION_CODE)))
-                .redirectUri("https://oauth.pstmn.io/v1/callback")
-                .scope("read")
-                .scope("WRITE")
-                .scope("CAN_READ_REQUESTS")
-                .tokenSettings(TokenSettings.builder()
-                        .accessTokenFormat(OAuth2TokenFormat.SELF_CONTAINED)
-                        .accessTokenTimeToLive(Duration.ofMinutes(15))
-                        .refreshTokenTimeToLive(Duration.ofHours(24))
-                        .reuseRefreshTokens(true)
-                        .build())
-                .clientSettings(ClientSettings.builder()
-                        .requireAuthorizationConsent(false)
-                        .build())
-                .build();
-
-        return new InMemoryRegisteredClientRepository(testeCode);
+        return new JdbcRegisteredClientRepository(jdbcOperations);
     }
 
     @Bean
@@ -113,7 +92,7 @@ public class AuthorizationServerConfig {
     public UserDetailsService userDetailsService() {
         var user1 = User.withUsername("user")
                 .password("password")
-                .authorities("read", "test")
+                .authorities("READ", "CAN_READ_REQUESTS", "CAN_READ_SALES")
                 .build();
         return new InMemoryUserDetailsManager(user1);
     }
